@@ -14,6 +14,10 @@ const main = async () => {
 
     // WADO-RS Study Metadata
     const studyMetaDataResponse = await fetch(studyRootUrl + '/metadata')
+    if(studyMetaDataResponse.status !== 200) {
+      console.log("ERROR fetching study metadata")
+      return
+    }
     const bodyText = await studyMetaDataResponse.text()
     const studyMetaData = JSON.parse(bodyText)
     const studyUid = studyMetaData[0]["0020000D"].Value[0]
@@ -29,6 +33,11 @@ const main = async () => {
     for (const seriesUid of uniqueSeriesUids) {
       const seriesRootUrl = studyRootUrl + '/series/' + seriesUid
       const seriesMetaDataResponse = await fetch(seriesRootUrl + '/metadata')
+      if(seriesMetaDataResponse.status !== 200) {
+        console.log("ERROR fetching series metadata for ", seriesUid)
+        return
+      }
+  
       const bodyText = await seriesMetaDataResponse.text()
       console.log('  ' + seriesUid)
 
@@ -38,15 +47,34 @@ const main = async () => {
 
       const sopInstanceUids = studyMetaData.map((value) => value["00080018"].Value[0])
       for (const sopInstanceUid of sopInstanceUids) {
+        console.log('    ' + sopInstanceUid)
         const sopInstanceRootUrl = seriesRootUrl + '/instances/' + sopInstanceUid
         const instanceMetaDataResponse = await fetch(sopInstanceRootUrl + '/metadata')
+        if(instanceMetaDataResponse.status !== 200) {
+          console.log("ERROR fetching instance metadata")
+          return
+        }
+  
         const bodyText = await instanceMetaDataResponse.text()
-        console.log('    ' + sopInstanceUid)
+        console.log('      metadata')
   
         const instanceRootPath = path.join(seriesRootPath, 'instances', sopInstanceUid)
         fs.mkdirSync(instanceRootPath, { recursive: true })
         fs.writeFileSync(path.join(instanceRootPath, 'metadata'), bodyText)
         
+        // Instance
+        const instanceResponse = await fetch(sopInstanceRootUrl)
+        if(instanceResponse.status !== 200) {
+          console.log("ERROR fetching instance")
+          return
+        }
+        const instanceBodyBuffer = await instanceResponse.buffer()
+  
+        console.log('      instance')
+  
+        fs.mkdirSync(instanceRootPath, { recursive: true })
+        fs.writeFileSync(path.join(instanceRootPath, 'instance'), instanceBodyBuffer)
+
         // Frames
         let frameIndex = 1
         const frameRootUrl = sopInstanceRootUrl + '/frames'
@@ -65,16 +93,9 @@ const main = async () => {
         } while(true)
         
         // TODO: BulkData
-
+        
       }
     }
-        // for each series
-      // WADO-RS Series Metadata
-      // for each sop instance
-        // WADO-RS Instance Metadata
-        // WADO-RS Image Frames
-        // WADO-RS BulkData
-        // WADO-RS Instance
 }
 
 main().then(() => {

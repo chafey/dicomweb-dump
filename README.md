@@ -1,6 +1,16 @@
 # dicomweb-dump
 CLI tool to dump DICOMweb WADO-RS responses to disk
 
+## Prerequisites
+
+* NodeJS (v14.18.1 used but earlier/later versions should also)
+* NPM
+
+Install dependencies
+> npm install
+
+## Usage
+
 > node src/index.mjs <URL to study on DICOMweb server> <output directory>
 
 ## Examples
