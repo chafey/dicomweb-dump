@@ -1,0 +1,25 @@
+{
+  "name": "dicomweb-dump",
+  "version": "1.0.0",
+  "description": "CLI tool to dump DICOMweb WADO-RS responses to disk",
+  "main": "src/index.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chafey/dicomweb-dump.git"
+  },
+  "keywords": [
+    "DICOMweb"
+  ],
+  "author": "Chris Hafey <chafey@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chafey/dicomweb-dump/issues"
+  },
+  "homepage": "https://github.com/chafey/dicomweb-dump#readme",
+  "dependencies": {
+    "node-fetch": "^3.0.0"
+  }
+}
