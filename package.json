@@ -15,6 +15,9 @@
   ],
   "author": "Chris Hafey <chafey@gmail.com>",
   "license": "MIT",
+  "bin": {
+    "dicomweb-dump": "./src/index.mjs"
+  },
   "bugs": {
     "url": "https://github.com/chafey/dicomweb-dump/issues"
   },
