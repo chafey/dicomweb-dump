@@ -31,8 +31,10 @@ Options:
   -o, --outputFolder               path                      [string] [required]
   -m, --stripMultiPartMimeWrapper  removes the multi part mime wrapper around im
                                    age frames and instances            [boolean]
-  -h, --help                       Show help                           [boolean]
-  ```
+  -q, --quiet                      suppresses status messages to stdout[boolean]
+  -i, --include full instance      adds the full instance to the dump (DICOM P10
+                                    instance)                          [boolean]
+  -h, --help                       Show help                           [boolean]  ```
 
 ## Examples
 
@@ -53,7 +55,7 @@ $outputFolder/$studyUid/metadata - study metadata
 $outputFolder/$studyUid/series/<seriesuid>/metadata - series metadata
 $outputFolder/$studyUid/series/<seriesuid>/instances/<sopinstanceuid>/metadata - instance metadata
 $outputFolder/$studyUid/series/<seriesuid>/instances/<sopinstanceuid>/frames/<frames 1..n> - Image Frame
-$outputFolder/$studyUid/series/<seriesuid>/instances/<sopinstanceuid>/_/<sopinstanceuid> - DICOM P10 instance
+$outputFolder/$studyUid/series/<seriesuid>/instances/<sopinstanceuid>/_/<sopinstanceuid> - DICOM P10 instance (if -i option is passed)
 ```
 
 Each output file will have a corresponding file with the prefix .dump.json which includes details such as
@@ -61,5 +63,4 @@ time to complete request, HTTP headers returned and multi-part mime header
 
 ## TODO
 
-* Add arguments to control what data is actually fetched (e.g. study metadata)
 * Dump bulkdata
