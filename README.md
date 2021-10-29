@@ -46,6 +46,19 @@ src/index.mjs -w https://server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs/studies 
 src/index.mjs -w https://server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs/studies -s 1.3.6.1.4.1.14519.5.2.1.7009.2403.129940714907926843330943219641 -o output -s
 ```
 
+## Output Structure
+
+```
+$outputFolder/$studyUid/metadata - study metadata
+$outputFolder/$studyUid/series/<seriesuid>/metadata - series metadata
+$outputFolder/$studyUid/series/<seriesuid>/instances/<sopinstanceuid>/metadata - instance metadata
+$outputFolder/$studyUid/series/<seriesuid>/instances/<sopinstanceuid>/frames/<frames 1..n> - Image Frame
+$outputFolder/$studyUid/series/<seriesuid>/instances/<sopinstanceuid>/_/<sopinstanceuid> - DICOM P10 instance
+```
+
+Each output file will have a corresponding file with the prefix .dump.json which includes details such as
+time to complete request, HTTP headers returned and multi-part mime header
+
 ## TODO
 
 * Add arguments to control what data is actually fetched (e.g. study metadata)
