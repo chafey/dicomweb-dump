@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
 import {getAndWrite} from './getAndWrite.mjs'
-import fetch from 'node-fetch'
-import fs from 'fs'
 import path from 'path'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'

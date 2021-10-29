@@ -7,6 +7,8 @@ CLI tool to dump DICOMweb WADO-RS responses to disk
 * Dump instance metadata
 * Dump instance
 * Dump instance frames
+* Strip multi-part mime header before writing to disk
+* Records HTTP headers, time to get response and multi-part mime headers to disk $.dump.json
 
 ## Prerequisites
 
@@ -18,7 +20,19 @@ Install dependencies
 
 ## Usage
 
-> node src/index.mjs <URL to study on DICOMweb server> <output directory>
+```
+Usage: index.mjs [options]
+
+Options:
+      --version                    Show version number                 [boolean]
+  -w, --wadoRsRootUrl              WADO-RS Root Url          [string] [required]
+  -s, --studyUid                   The Study Instance UID to dump
+                                                             [string] [required]
+  -o, --outputFolder               path                      [string] [required]
+  -m, --stripMultiPartMimeWrapper  removes the multi part mime wrapper around im
+                                   age frames and instances            [boolean]
+  -h, --help                       Show help                           [boolean]
+  ```
 
 ## Examples
 
@@ -34,7 +48,5 @@ src/index.mjs -w https://server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs/studies 
 
 ## TODO
 
-* Add argument to strip out multi-part mime wrapper
 * Add arguments to control what data is actually fetched (e.g. study metadata)
-* Dump out the HTTP Headers
 * Dump bulkdata
