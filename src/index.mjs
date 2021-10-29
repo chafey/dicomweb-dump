@@ -1,97 +1,94 @@
+#!/usr/bin/env node
+
+import {getAndWrite} from './getAndWrite.mjs'
 import fetch from 'node-fetch'
 import fs from 'fs'
 import path from 'path'
-
+import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
 
 const main = async () => {
-    if(process.argv.length < 4) {
-        console.log('node src/index.js <URL to study on DICOMweb server> <output directory>')
-        return
-    }
 
-    const studyRootUrl = process.argv[2]
-    const outputPath = process.argv[3]
+  const argv = yargs(hideBin(process.argv))
+    .usage('Usage: $0 [options]')
+    .option('w', {
+      alias: 'wadoRsRootUrl',
+      description: 'WADO-RS Root Url',
+      type: 'string',
+    })
+    .option('s', {
+      alias: 'studyUid',
+      description: 'The Study Instance UID to dump',
+      type: 'string',
+    })
+    .option('o', {
+      alias: 'outputFolder',
+      description: 'path',
+      type: 'string',
+    })
+    .option('m', {
+      alias: 'stripMultiPartMimeWrapper',
+      description: 'removes the multi part mime wrapper around image frames and instances',
+      type: 'boolean',
+    })
+    .demandOption(['w', 's', 'o'])
+    .help()
+    .alias('help', 'h')
+    .argv
+
+    //console.log(argv)
+
+    const studyUid = argv.s
+    const studyRootUrl = argv.w + '/' + studyUid
+    const outputFolder = argv.o + '/' + studyUid
+    const studyRootPath = path.join(outputFolder, studyUid)
+    const options = {
+      stripMultiPartMimeWrapper: argv.m
+    }
 
     // WADO-RS Study Metadata
-    const studyMetaDataResponse = await fetch(studyRootUrl + '/metadata')
-    if(studyMetaDataResponse.status !== 200) {
-      console.log("ERROR fetching study metadata")
-      return
-    }
-    const bodyText = await studyMetaDataResponse.text()
-    const studyMetaData = JSON.parse(bodyText)
-    const studyUid = studyMetaData[0]["0020000D"].Value[0]
-    console.log(studyUid)
-
-    const studyRootPath = path.join(outputPath, studyUid)
-    fs.mkdirSync(studyRootPath, { recursive: true })
-    fs.writeFileSync(path.join(studyRootPath, 'metadata'), bodyText)
-
+    const response = await getAndWrite(studyRootUrl, studyRootPath, 'metadata', false, options)
+    const studyMetaData = JSON.parse(response.bodyAsBuffer)
     const sopInstanceSeriesUids = studyMetaData.map((value) => value["0020000E"].Value[0])
     const uniqueSeriesUids = [...new Set(sopInstanceSeriesUids)]
     //console.log(uniqueSeriesUids)
+
+    // Process each series
     for (const seriesUid of uniqueSeriesUids) {
       const seriesRootUrl = studyRootUrl + '/series/' + seriesUid
-      const seriesMetaDataResponse = await fetch(seriesRootUrl + '/metadata')
-      if(seriesMetaDataResponse.status !== 200) {
-        console.log("ERROR fetching series metadata for ", seriesUid)
-        return
-      }
-  
-      const bodyText = await seriesMetaDataResponse.text()
-      console.log('  ' + seriesUid)
-
       const seriesRootPath = path.join(studyRootPath, 'series', seriesUid)
-      fs.mkdirSync(seriesRootPath, { recursive: true })
-      fs.writeFileSync(path.join(seriesRootPath, 'metadata'), bodyText)
+      await getAndWrite(seriesRootUrl, seriesRootPath, 'metadata', false, options)
+      console.log('  ' + seriesUid)
 
       const sopInstanceUids = studyMetaData.map((value) => value["00080018"].Value[0])
       for (const sopInstanceUid of sopInstanceUids) {
         console.log('    ' + sopInstanceUid)
+
+        // instance metadata
+        const instanceRootPath = path.join(seriesRootPath, 'instances', sopInstanceUid)
         const sopInstanceRootUrl = seriesRootUrl + '/instances/' + sopInstanceUid
-        const instanceMetaDataResponse = await fetch(sopInstanceRootUrl + '/metadata')
-        if(instanceMetaDataResponse.status !== 200) {
-          console.log("ERROR fetching instance metadata")
-          return
-        }
-  
-        const bodyText = await instanceMetaDataResponse.text()
+        await getAndWrite(sopInstanceRootUrl, instanceRootPath, 'metadata', false, options)
         console.log('      metadata')
   
-        const instanceRootPath = path.join(seriesRootPath, 'instances', sopInstanceUid)
-        fs.mkdirSync(instanceRootPath, { recursive: true })
-        fs.writeFileSync(path.join(instanceRootPath, 'metadata'), bodyText)
-        
-        // Instance
-        const instanceResponse = await fetch(sopInstanceRootUrl)
-        if(instanceResponse.status !== 200) {
-          console.log("ERROR fetching instance")
-          return
-        }
-        const instanceBodyBuffer = await instanceResponse.buffer()
-  
-        console.log('      instance')
-  
-        fs.mkdirSync(instanceRootPath, { recursive: true })
-        fs.writeFileSync(path.join(instanceRootPath, 'instance'), instanceBodyBuffer)
+        // instance
+        await getAndWrite(seriesRootUrl + '/instances/', path.join(instanceRootPath, '_'), sopInstanceUid, true, options)
 
-        // Frames
+        // instance frames
         let frameIndex = 1
         const frameRootUrl = sopInstanceRootUrl + '/frames'
         const frameRootPath = path.join(instanceRootPath, 'frames')
-        fs.mkdirSync(frameRootPath, { recursive: true })
 
-        do {
-          const frameResponse = await fetch(frameRootUrl + '/' + frameIndex)
-          if(frameResponse.status !== 200) {
-            break
-          }
-          console.log('      frame ' + frameIndex)
-          const bodyBuffer = await frameResponse.buffer()
-          fs.writeFileSync(path.join(frameRootPath, '' + frameIndex), bodyBuffer)
-          frameIndex++
-        } while(true)
-        
+        // TODO - calculate number of frames and loop over them instead of using error to terminate
+        try {
+          do {
+            await getAndWrite(frameRootUrl, frameRootPath, '/' + frameIndex, true, options)
+            console.log('      frame ' + frameIndex)
+            frameIndex++
+          } while(true)
+        } catch(ex) {
+          // suppress
+        }
+
         // TODO: BulkData
         
       }
@@ -99,5 +96,8 @@ const main = async () => {
 }
 
 main().then(() => {
-
+  console.log('done')
+}).catch((err) => {
+  console.log('error')
+  console.log(err)
 })
