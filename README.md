@@ -1,6 +1,10 @@
 # dicomweb-dump
 CLI tool to dump DICOMweb WADO-RS responses to disk
 
+## Status
+
+In development/alpha (as of Nov 1, 2021).  Beta release targeted for Nov 8, 2021
+
 ## Features
 * Dump study metadata
 * Dump series metadata
@@ -58,7 +62,7 @@ $outputFolder/$studyUid/series/<seriesuid>/instances/<sopinstanceuid>/_/<sopinst
 
 ### Single Image CR
 ```
-dicomweb-dump -w https://server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs/studies -s 1.3.6.1.4.1.25403.345050719074.3824.20170126085406.1 -o output -s
+dicomweb-dump -w https://server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs/studies -s 1.3.6.1.4.1.25403.345050719074.3824.20170126085406.1 -o output -i -m
 ```
 
 ### Large Ct
@@ -71,4 +75,8 @@ time to complete request, HTTP headers returned and multi-part mime header
 
 ## TODO
 
+* Fix issue where the trailing part of the multi-part mime wrapper is not removed with -m option
 * Dump bulkdata
+* Add option to do concurrent requests for faster downloads (and also stress testing server implementations)
+* Add option to just dump instance metadata/frames/bulk data
+* Consider separating the fetch logic into a separate library so it can be re-used?
