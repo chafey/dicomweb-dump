@@ -47,7 +47,8 @@ Options:
   -q, --quiet                      suppresses status messages to stdout[boolean]
   -i, --include full instance      adds the full instance to the dump (DICOM P10
                                     instance)                          [boolean]
-  -h, --help                       Show help                           [boolean]  ```
+  -h, --help                       Show help                           [boolean]  
+```
 
 ## Output Structure
 
