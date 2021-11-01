@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import fs from 'fs'
 import path from 'path'
-import {simpleParser} from 'mailparser'
+import getPixelData from './getPixelData.mjs'
 
 const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) => {
     const url = path.join(baseUrl, resourcePath)
@@ -17,7 +17,6 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
     }
   
     let bodyAsBuffer = await response.buffer()
-  
     const dump = {
       url: url,
       requestTimeInMS: requestTimeInMS,
@@ -25,15 +24,17 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
     }
   
     if(multiPart) {
-        const parsed = await simpleParser(bodyAsBuffer)
-
-        dump.multiPartHeaders = Object.fromEntries(parsed.headers)
-
+      try {
+        const rawData = getPixelData(bodyAsBuffer)
         if(options.stripMultiPartMimeWrapper) {
-            bodyAsBuffer = parsed.attachments[0].content
+          bodyAsBuffer = rawData.content
         }
-    } 
-    
+        dump.contentType = rawData.contentType 
+      } catch (ex) {
+        console.log(ex)
+      }
+    }
+ 
     //console.log(response)
     //console.dir(dump)
   

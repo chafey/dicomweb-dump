@@ -23,7 +23,6 @@
   },
   "homepage": "https://github.com/chafey/dicomweb-dump#readme",
   "dependencies": {
-    "mailparser": "^3.4.0",
     "node-fetch": "^3.0.0",
     "yargs": "^17.2.1"
   }

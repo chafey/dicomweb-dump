@@ -76,7 +76,6 @@ time to complete request, HTTP headers returned and multi-part mime header
 
 ## TODO
 
-* Fix issue where the trailing part of the multi-part mime wrapper is not removed with -m option
 * Dump bulkdata
 * Add option to do concurrent requests for faster downloads (and also stress testing server implementations)
 * Add option to just dump instance metadata/frames/bulk data
