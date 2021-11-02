@@ -26,7 +26,13 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
   const requestOptions = {
     hostname: myURL.host,
     path: myURL.pathname,
+    headers: {}
   }
+
+  if (options.authorization) {
+    requestOptions.headers.Authorization = options.authorization
+  }
+
 
   return new Promise((resolve, reject) => {
 

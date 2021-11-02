@@ -55,6 +55,7 @@ Options:
                                    lse/off)                            [boolean]
   -r, --retry                      request failure retry count (default 3)
                                                                         [number]
+  -z, --authorization              HTTP Authorization header value      [string]
   -h, --help                       Show help                           [boolean]
 ```
 

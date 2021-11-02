@@ -50,7 +50,11 @@ const processCommandLineArguments = () => {
             description: 'request failure retry count (default 3)',
             type: 'number'
         })
-
+        .option('z', {
+            alias: 'authorization',
+            description: 'HTTP Authorization header value',
+            type: 'string'
+        })
         .demandOption(['w', 's', 'o'])
         .help()
         .alias('help', 'h')

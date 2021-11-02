@@ -6,6 +6,7 @@ const createOptionsFromArguments = (argv) => {
         concurrency: argv.c ?? 1,
         abort: argv.a ?? false,
         retry: argv.r ?? 3,
+        authorization: argv.z,
     }
 }
 
