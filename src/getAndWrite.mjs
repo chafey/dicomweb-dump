@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import fs from 'fs'
 import path from 'path'
-import getPixelData from './getPixelData.mjs'
+import getAttachments from './getAttachments.mjs'
 
 const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) => {
     const url = path.join(baseUrl, resourcePath)
@@ -25,11 +25,11 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
   
     if(multiPart) {
       try {
-        const rawData = getPixelData(bodyAsBuffer)
+        const attachments = getAttachments(bodyAsBuffer)
         if(options.stripMultiPartMimeWrapper) {
-          bodyAsBuffer = rawData.content
+          bodyAsBuffer = attachments[0].content
         }
-        dump.contentType = rawData.contentType 
+        dump.contentType = attachments[0].contentType 
       } catch (ex) {
         console.log(ex)
       }

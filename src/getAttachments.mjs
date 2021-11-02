@@ -28,7 +28,7 @@ function uint8ArrayToString(data, offset, length) {
   return str;
 }
 
-function getPixelData(bufferAsBody, mediaType = 'application/octet-stream') {
+function getAttachments(bufferAsBody, mediaType = 'application/octet-stream') {
   // request succeeded, Parse the multi-part mime response
   const response = new Uint8Array(bufferAsBody);
 
@@ -60,10 +60,10 @@ function getPixelData(bufferAsBody, mediaType = 'application/octet-stream') {
 
   // return the info for this pixel data
   const content = new Buffer.from(response.buffer, offset, length)
-  return  {
+  return  [{
     contentType: findContentType(split),
     content: content
-  }
+  }]
 }
 
-export default getPixelData;
+export default getAttachments

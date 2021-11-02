@@ -3,7 +3,7 @@ CLI tool to dump DICOMweb WADO-RS responses to disk
 
 ## Status
 
-In development/alpha (as of Nov 1, 2021).  Beta release targeted for Nov 8, 2021
+In development/alpha (as of Nov 2, 2021).  Beta release targeted for Nov 8, 2021
 
 ## Features
 * Dump study metadata
@@ -76,7 +76,16 @@ time to complete request, HTTP headers returned and multi-part mime header
 
 ## TODO
 
+### Features
+
 * Dump bulkdata
 * Add option to do concurrent requests for faster downloads (and also stress testing server implementations)
 * Add option to just dump instance metadata/frames/bulk data
+* Enhance getAttachments() to return more info from the multi-part mime header
+
+### Reuse
 * Consider separating the fetch logic into a separate library so it can be re-used?
+
+### Optimizations
+* See if getAttachments() can be optimized - just use Buffer instead of Uint8Array?  
+* Make application streamable to reduce memory?
