@@ -15,7 +15,6 @@ let errorCount = 0
 let completedRequestCount = 0
 
 const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) => {
-  fs.mkdirSync(basePath, { recursive: true })
 
   printProgress('' + completedRequestCount + '/' + errorCount + '/' + ++totalRequestCount)
 
@@ -59,6 +58,7 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
         //console.log(response)
         //console.dir(dump)
 
+        fs.mkdirSync(basePath, { recursive: true })
         const filePath = path.join(basePath, resourcePath)
         fs.writeFileSync(filePath, bodyAsBuffer)
 

@@ -13,6 +13,7 @@ In development/alpha (as of Nov 2, 2021).  Beta release targeted for Nov 8, 2021
 * Dump instance frames
 * Write to disk with multi-part mime headers removed in $.bin
 * Records HTTP headers, time to get response and multi-part mime headers to disk $.dump.json
+* Concurrent requests for faster downloads (and stress testing servers)
 
 ## Prerequisites
 
@@ -90,6 +91,9 @@ time to complete request, HTTP headers returned and multi-part mime header
 * Enhance getAttachments() to return more info from the multi-part mime header
 * Add option to use qido-rs study series and series instances to get UIDs
 * Add option to dump qido-rs study series and series instance responses
+* Report performance/timing information
+* Support authentication somehow?
+* Add option to pretty print JSON?
 
 ### Reuse
 * Consider separating the fetch logic into a separate library so it can be re-used?
