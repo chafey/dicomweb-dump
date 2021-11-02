@@ -79,10 +79,6 @@ Each output file will have a corresponding file with the prefix .dump.json which
 time to complete request, HTTP headers returned and multi-part mime header
 
 ## TODO
-
-* Error Handling
-  * Write out errors to stderr
-  * option to stop on error?
   
 ### Features
 

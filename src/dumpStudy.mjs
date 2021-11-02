@@ -30,7 +30,7 @@ const dumpStudy = async (wadoRsRootUrl, outputFolder, studyUid, options) => {
         const seriesRootUrl = studyRootUrl + '/series/' + seriesUid
         const seriesRootPath = path.join(studyRootPath, 'series', seriesUid)
 
-        // Get Series Metadata
+        // Get Series Metadata (JSON)
         promises.push(queue.add(() => getAndWrite(seriesRootUrl, seriesRootPath, 'metadata', false, options))
             .catch((err) => {
                 handleError('series metadata', err, options)
@@ -39,8 +39,6 @@ const dumpStudy = async (wadoRsRootUrl, outputFolder, studyUid, options) => {
         // iterate over each instance in this series
         const sopInstanceUids = studyMetaData.map((value) => value["00080018"].Value[0])
         for (const sopInstanceUid of sopInstanceUids) {
-            //console.log(studyUid + "/" + seriesUid + "/" + sopInstanceUid)
-
             const instanceRootPath = path.join(seriesRootPath, 'instances', sopInstanceUid)
 
             if (options.includeFullInstance) {
