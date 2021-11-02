@@ -42,8 +42,8 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
         if (response.statusCode !== 200) {
           printProgress('' + completedRequestCount + '/' + ++errorCount + '/' + totalRequestCount)
           return reject({
-            message: "Error fetching " + fullUrl,
-            response
+            message: "Server returned HTTP status code " + response.statusCode,
+            url: fullUrl
           })
         }
 
@@ -63,7 +63,10 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
             }
             dump.contentType = attachments[0].contentType
           } catch (ex) {
-            console.log('parse multipart failed')
+            return reject({
+              message: "Multipart parsing failed",
+              url: fullUrl
+            })
           }
         }
 
@@ -85,8 +88,11 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
     }
 
     https.request(requestOptions, callback).on('error', (e) => {
-      //suppress
-      console.log(e)
+      return reject({
+        message: "Request error ",
+        url: fullUrl,
+        error: e
+      })
     }).end()
   })
 }

@@ -4,6 +4,7 @@ const createOptionsFromArguments = (argv) => {
         quiet: argv.q,
         includeFullInstance: argv.i,
         concurrency: argv.c ?? 1,
+        abort: argv.a ?? false,
     }
 }
 

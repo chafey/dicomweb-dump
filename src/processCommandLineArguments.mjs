@@ -40,6 +40,11 @@ const processCommandLineArguments = () => {
             description: 'controls maximum concurrent request count (default is 1)',
             type: 'number'
         })
+        .option('a', {
+            alias: 'abort',
+            description: 'abort processing on any errors (default is false/off)',
+            type: 'boolean'
+        })
 
         .demandOption(['w', 's', 'o'])
         .help()

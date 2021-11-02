@@ -47,7 +47,11 @@ Options:
   -q, --quiet                      suppresses status messages to stdout[boolean]
   -i, --include full instance      adds the full instance to the dump (DICOM P10
                                     instance)                          [boolean]
-  -h, --help                       Show help                           [boolean]  
+  -c, --concurrency                controls maximum concurrent request count (de
+                                   fault is 1)                          [number]
+  -a, --abort                      abort processing on any errors (default is fa
+                                   lse/off)                            [boolean]
+  -h, --help                       Show help                           [boolean]
 ```
 
 ## Output Structure
@@ -83,7 +87,6 @@ time to complete request, HTTP headers returned and multi-part mime header
 ### Features
 
 * Dump bulkdata
-* Add option to do concurrent requests for faster downloads (also useful for stress testing server implementations)
 * Add option to just dump instance metadata/frames/bulk data
 * Enhance getAttachments() to return more info from the multi-part mime header
 * Add option to use qido-rs study series and series instances to get UIDs

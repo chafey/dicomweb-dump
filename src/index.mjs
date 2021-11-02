@@ -21,9 +21,8 @@ const main = async () => {
 main().then(() => {
   console.log('')
   console.log('done')
-  return 0
+  process.exit(0)
 }).catch((err) => {
-  console.log('error')
   console.log(err)
-  return -1
+  process.exit(-1)
 })
