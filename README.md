@@ -94,6 +94,7 @@ time to complete request, HTTP headers returned and multi-part mime header
 * Report performance/timing information
 * Support authentication somehow?
 * Add option to pretty print JSON?
+* Add support for making requests over HTTP/2
 
 ### Reuse
 * Consider separating the fetch logic into a separate library so it can be re-used?
