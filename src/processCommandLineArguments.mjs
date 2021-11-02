@@ -45,6 +45,11 @@ const processCommandLineArguments = () => {
             description: 'abort processing on any errors (default is false/off)',
             type: 'boolean'
         })
+        .option('r', {
+            alias: 'retry',
+            description: 'request failure retry count (default 3)',
+            type: 'number'
+        })
 
         .demandOption(['w', 's', 'o'])
         .help()

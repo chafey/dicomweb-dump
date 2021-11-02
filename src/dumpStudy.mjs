@@ -1,4 +1,4 @@
-import { getAndWrite } from './getAndWrite.mjs'
+import getAndWrite from './getAndWrite.mjs'
 import path from 'path'
 import Queue from 'promise-queue'
 

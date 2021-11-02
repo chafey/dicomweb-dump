@@ -15,6 +15,7 @@ let errorCount = 0
 let completedRequestCount = 0
 
 const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) => {
+  fs.mkdirSync(basePath, { recursive: true })
 
   printProgress('' + completedRequestCount + '/' + errorCount + '/' + ++totalRequestCount)
 
@@ -55,11 +56,9 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
           httpHeaders: response.headers
         }
 
-
         //console.log(response)
         //console.dir(dump)
 
-        fs.mkdirSync(basePath, { recursive: true })
         const filePath = path.join(basePath, resourcePath)
         fs.writeFileSync(filePath, bodyAsBuffer)
 
@@ -89,13 +88,14 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
         })
       });
     }
-    const maxRetries = 3 // sometimes a request fails, so retry up to 3 times
+    // NOTE - requests tend to fail under high concurrency so retry if this happens
     let i = 1
     while (true) {
       https.request(requestOptions, callback).on('error', (e) => {
-        //console.error('Error - retrying #', i, maxRetries)
-        // ignore
-        if (i === maxRetries) {
+        if (!options.quiet) {
+          console.error('Request error - retrying #' + i, e)
+        }
+        if (i === options.retry) {
           return reject({
             message: "Request error ",
             url: fullUrl,
@@ -107,4 +107,4 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
   })
 }
 
-export { getAndWrite }
+export default getAndWrite
