@@ -11,7 +11,7 @@ In development/alpha (as of Nov 2, 2021).  Beta release targeted for Nov 8, 2021
 * Dump instance metadata
 * Dump instance
 * Dump instance frames
-* Strip multi-part mime header before writing to disk
+* Write to disk with multi-part mime headers removed in $.bin
 * Records HTTP headers, time to get response and multi-part mime headers to disk $.dump.json
 
 ## Prerequisites
@@ -43,7 +43,8 @@ Options:
                                                              [string] [required]
   -o, --outputFolder               path                      [string] [required]
   -m, --stripMultiPartMimeWrapper  removes the multi part mime wrapper around im
-                                   age frames and instances and          [boolean]
+                                   age frames and instances and saves it as a se
+                                   parate file with .bin extension     [boolean]
   -q, --quiet                      suppresses status messages to stdout[boolean]
   -i, --include full instance      adds the full instance to the dump (DICOM P10
                                     instance)                          [boolean]
@@ -51,6 +52,8 @@ Options:
                                    fault is 1)                          [number]
   -a, --abort                      abort processing on any errors (default is fa
                                    lse/off)                            [boolean]
+  -r, --retry                      request failure retry count (default 3)
+                                                                        [number]
   -h, --help                       Show help                           [boolean]
 ```
 
