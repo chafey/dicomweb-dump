@@ -72,8 +72,9 @@ const main = async () => {
       const seriesRootPath = path.join(studyRootPath, 'series', seriesUid)
 
       // Get Series Metadata
-      await getAndWrite(seriesRootUrl, seriesRootPath, 'metadata', false, options)
-      console.log('  ' + seriesUid)
+      getAndWrite(seriesRootUrl, seriesRootPath, 'metadata', false, options).then(() => {
+        console.log('  ' + seriesUid)
+      })
 
       // iterate over each instance in this series
       const sopInstanceUids = studyMetaData.map((value) => value["00080018"].Value[0])
@@ -83,14 +84,16 @@ const main = async () => {
         // Get Sop Instance metadata (JSON)
         const instanceRootPath = path.join(seriesRootPath, 'instances', sopInstanceUid)
         const sopInstanceRootUrl = seriesRootUrl + '/instances/' + sopInstanceUid
-        await getAndWrite(sopInstanceRootUrl, instanceRootPath, 'metadata', false, options)
-        console.log('      metadata')
+        getAndWrite(sopInstanceRootUrl, instanceRootPath, 'metadata', false, options).then(() => {
+          console.log('      metadata')
+        })
   
         if(includeFullInstance)
         {
           // Get SopInstance (DICOM P10 format - multi-part mime wrapped)
-          await getAndWrite(seriesRootUrl + '/instances/', path.join(instanceRootPath, '_'), sopInstanceUid, true, options)
-          console.log('      instance')
+          getAndWrite(seriesRootUrl + '/instances/', path.join(instanceRootPath, '_'), sopInstanceUid, true, options).then(() => {
+            console.log('      instance')
+          })
         }
 
         let frameIndex = 1
@@ -100,9 +103,10 @@ const main = async () => {
         try {
           do {
             // Get SopInstance frames (raw frame - multi-part mime wrapped)
-            await getAndWrite(frameRootUrl, frameRootPath, '/' + frameIndex, true, options)
-            console.log('      frame ' + frameIndex)
-            frameIndex++
+            const index = frameIndex++
+            getAndWrite(frameRootUrl, frameRootPath, '/' + index, true, options).then(() => {
+              console.log('      frame ' + index)
+            })
           } while(true)
         } catch(ex) {
           // suppress any errors since they are probably for frames that don't exist
