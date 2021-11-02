@@ -93,7 +93,6 @@ time to complete request, HTTP headers returned and multi-part mime header
 * Add option to use qido-rs study series and series instances to get UIDs
 * Add option to dump qido-rs study series and series instance responses
 * Report performance/timing information
-* Support authentication somehow?
 * Add option to pretty print JSON?
 * Add support for making requests over HTTP/2
 
