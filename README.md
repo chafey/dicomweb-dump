@@ -76,12 +76,18 @@ time to complete request, HTTP headers returned and multi-part mime header
 
 ## TODO
 
+* Error Handling
+  * Write out errors to stderr
+  * option to stop on error?
+  
 ### Features
 
 * Dump bulkdata
-* Add option to do concurrent requests for faster downloads (and also stress testing server implementations)
+* Add option to do concurrent requests for faster downloads (also useful for stress testing server implementations)
 * Add option to just dump instance metadata/frames/bulk data
 * Enhance getAttachments() to return more info from the multi-part mime header
+* Add option to use qido-rs study series and series instances to get UIDs
+* Add option to dump qido-rs study series and series instance responses
 
 ### Reuse
 * Consider separating the fetch logic into a separate library so it can be re-used?
@@ -89,3 +95,4 @@ time to complete request, HTTP headers returned and multi-part mime header
 ### Optimizations
 * See if getAttachments() can be optimized - just use Buffer instead of Uint8Array?  
 * Make application streamable to reduce memory?
+* -m to store the extracted content/attachment as separate file

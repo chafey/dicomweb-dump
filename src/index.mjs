@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 
-import {getAndWrite} from './getAndWrite.mjs'
+import { getAndWrite } from './getAndWrite.mjs'
 import path from 'path'
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
+import http from 'http'
+import https from 'https'
+import Queue from 'promise-queue'
+//import dumpStudy from './dumpStudy.mjs'
 
 const main = async () => {
 
@@ -40,85 +44,110 @@ const main = async () => {
       description: 'adds the full instance to the dump (DICOM P10 instance)',
       type: 'boolean'
     })
+    .option('c', {
+      alias: 'concurrency',
+      description: 'controls maximum concurrent request count (default is 1)',
+      type: 'number'
+    })
+
     .demandOption(['w', 's', 'o'])
     .help()
     .alias('help', 'h')
     .argv
 
-    // extract command line arguments
-    const studyUid = argv.s
-    const studyRootUrl = argv.w + '/' + studyUid
-    const outputFolder = argv.o + '/' + studyUid
-    const studyRootPath = path.join(outputFolder, studyUid)
-    const includeFullInstance = argv.i
-    const options = {
-      stripMultiPartMimeWrapper: argv.m
-    }
+  // extract command line arguments
+  const studyUid = argv.s
+  const studyRootUrl = argv.w + '/' + studyUid
+  const outputFolder = argv.o + '/' + studyUid
+  const studyRootPath = path.join(outputFolder, studyUid)
+  const includeFullInstance = argv.i
+  const options = {
+    stripMultiPartMimeWrapper: argv.m
+  }
 
-    // replace console.log if we are in quiet mode
-    if(argv.q) {
-      console.log = () => {}
-    }
+  // replace console.log if we are in quiet mode
+  if (argv.q) {
+    console.log = () => { }
+  }
 
-    // Get Study Metadata (JSON)
-    const response = await getAndWrite(studyRootUrl, studyRootPath, 'metadata', false, options)
-    const studyMetaData = JSON.parse(response.bodyAsBuffer)
-    const sopInstanceSeriesUids = studyMetaData.map((value) => value["0020000E"].Value[0])
-    const uniqueSeriesUids = [...new Set(sopInstanceSeriesUids)]
+  // Setup http agent for maximum concurrency
+  const maxConcurrency = argv.c ?? 1
 
-    // iterate over each series in this study
-    for (const seriesUid of uniqueSeriesUids) {
-      const seriesRootUrl = studyRootUrl + '/series/' + seriesUid
-      const seriesRootPath = path.join(studyRootPath, 'series', seriesUid)
+  const agentOptions = {
+    keepAlive: true,
+    maxSockets: maxConcurrency
+  }
 
-      // Get Series Metadata
-      getAndWrite(seriesRootUrl, seriesRootPath, 'metadata', false, options).then(() => {
-        console.log('  ' + seriesUid)
-      })
+  const httpAgent = new http.Agent(agentOptions);
+  const httpsAgent = new https.Agent(agentOptions);
+  global.httpAgent = httpsAgent
 
-      // iterate over each instance in this series
-      const sopInstanceUids = studyMetaData.map((value) => value["00080018"].Value[0])
-      for (const sopInstanceUid of sopInstanceUids) {
-        console.log('    ' + sopInstanceUid)
+  // setup queue for controlling concurrency
+  var maxConcurrent = maxConcurrency;
+  var maxQueue = Infinity;
+  var queue = new Queue(maxConcurrent, maxQueue);
 
-        // Get Sop Instance metadata (JSON)
-        const instanceRootPath = path.join(seriesRootPath, 'instances', sopInstanceUid)
-        const sopInstanceRootUrl = seriesRootUrl + '/instances/' + sopInstanceUid
-        getAndWrite(sopInstanceRootUrl, instanceRootPath, 'metadata', false, options).then(() => {
-          console.log('      metadata')
-        })
-  
-        if(includeFullInstance)
-        {
-          // Get SopInstance (DICOM P10 format - multi-part mime wrapped)
-          getAndWrite(seriesRootUrl + '/instances/', path.join(instanceRootPath, '_'), sopInstanceUid, true, options).then(() => {
-            console.log('      instance')
-          })
-        }
+  const promises = []
 
-        let frameIndex = 1
-        const frameRootUrl = sopInstanceRootUrl + '/frames'
-        const frameRootPath = path.join(instanceRootPath, 'frames')
-        // TODO - calculate number of frames and loop over them instead of using error to terminate
-        try {
-          do {
-            // Get SopInstance frames (raw frame - multi-part mime wrapped)
-            const index = frameIndex++
-            getAndWrite(frameRootUrl, frameRootPath, '/' + index, true, options).then(() => {
-              console.log('      frame ' + index)
+  // Get Study Metadata (JSON)
+  const response = await getAndWrite(studyRootUrl, studyRootPath, 'metadata', false, options)
+  const studyMetaData = JSON.parse(response.bodyAsBuffer)
+  const sopInstanceSeriesUids = studyMetaData.map((value) => value["0020000E"].Value[0])
+  const uniqueSeriesUids = [...new Set(sopInstanceSeriesUids)]
+
+  // iterate over each series in this study
+  for (const seriesUid of uniqueSeriesUids) {
+    const seriesRootUrl = studyRootUrl + '/series/' + seriesUid
+    const seriesRootPath = path.join(studyRootPath, 'series', seriesUid)
+
+    // Get Series Metadata
+    promises.push(queue.add(() => { return getAndWrite(seriesRootUrl, seriesRootPath, 'metadata', false, options) })
+      .catch(() => {
+        //supress
+      }))
+
+    // iterate over each instance in this series
+    const sopInstanceUids = studyMetaData.map((value) => value["00080018"].Value[0])
+    for (const sopInstanceUid of sopInstanceUids) {
+      //console.log(studyUid + "/" + seriesUid + "/" + sopInstanceUid)
+
+      const instanceRootPath = path.join(seriesRootPath, 'instances', sopInstanceUid)
+
+      if (includeFullInstance) {
+        // Get SopInstance (DICOM P10 format - multi-part mime wrapped)
+        promises.push(queue.add(() => {
+          return getAndWrite(seriesRootUrl + '/instances/', path.join(instanceRootPath, '_'), sopInstanceUid, true, options)
+            .catch(() => {
+              //console.log('error...')
             })
-          } while(true)
-        } catch(ex) {
-          // suppress any errors since they are probably for frames that don't exist
-        }
-
-        // TODO: BulkData
-        
+        }))
       }
+      // Get Sop Instance metadata (JSON)
+      const sopInstanceRootUrl = seriesRootUrl + '/instances/' + sopInstanceUid
+      promises.push(queue.add(async () => {
+        await getAndWrite(sopInstanceRootUrl, instanceRootPath, 'metadata', false, options).then((res) => {
+          const sopInstanceMetaData = JSON.parse(res.bodyAsBuffer)
+          const hasPixelData = sopInstanceMetaData[0]['7FE00010']
+          if (hasPixelData) {
+            const frameRootUrl = sopInstanceRootUrl + '/frames'
+            const frameRootPath = path.join(instanceRootPath, 'frames')
+            const frames = sopInstanceMetaData[0]['00280008'] ?? 1
+            for (let frameIndex = 1; frameIndex <= frames; frameIndex++) {
+              promises.push(queue.add(() => { return getAndWrite(frameRootUrl, frameRootPath, '/' + frameIndex, true, options).catch(() => { }) }))
+            }
+          }
+          // TODO: BulkData
+        }).catch((err) => {
+          console.log('error...')
+        })
+      }))
     }
+  }
+  await Promise.all(promises)
 }
 
 main().then(() => {
+  console.log('')
   console.log('done')
   return 0
 }).catch((err) => {

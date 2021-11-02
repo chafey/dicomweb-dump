@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/chafey/dicomweb-dump#readme",
   "dependencies": {
-    "node-fetch": "^3.0.0",
+    "promise-queue": "^2.2.5",
     "yargs": "^17.2.1"
   }
 }
