@@ -3,7 +3,9 @@ import path from 'path'
 import Queue from 'promise-queue'
 
 const handleError = (message, err, options) => {
-    console.error('ERROR - ', message, err)
+    if (!options.quiet) {
+        console.error('ERROR - ', message, err)
+    }
     if (options.abort) {
         throw new Error(message + err.toString())
     }
