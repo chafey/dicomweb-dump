@@ -55,11 +55,20 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
           httpHeaders: response.headers
         }
 
+
+        //console.log(response)
+        //console.dir(dump)
+
+        fs.mkdirSync(basePath, { recursive: true })
+        const filePath = path.join(basePath, resourcePath)
+        fs.writeFileSync(filePath, bodyAsBuffer)
+
         if (multiPart) {
           try {
             const attachments = getAttachments(bodyAsBuffer)
             if (options.stripMultiPartMimeWrapper) {
-              bodyAsBuffer = attachments[0].content
+              const filePath = path.join(basePath, resourcePath + ".bin")
+              fs.writeFileSync(filePath, attachments[0].content)
             }
             dump.contentType = attachments[0].contentType
           } catch (ex) {
@@ -70,12 +79,6 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
           }
         }
 
-        //console.log(response)
-        //console.dir(dump)
-
-        fs.mkdirSync(basePath, { recursive: true })
-        const filePath = path.join(basePath, resourcePath)
-        fs.writeFileSync(filePath, bodyAsBuffer)
         fs.writeFileSync(filePath + '.dump.json', JSON.stringify(dump, null, 2))
 
         printProgress('' + ++completedRequestCount + '/' + errorCount + '/' + totalRequestCount)
@@ -86,14 +89,21 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
         })
       });
     }
-
-    https.request(requestOptions, callback).on('error', (e) => {
-      return reject({
-        message: "Request error ",
-        url: fullUrl,
-        error: e
-      })
-    }).end()
+    const maxRetries = 3 // sometimes a request fails, so retry up to 3 times
+    let i = 1
+    while (true) {
+      https.request(requestOptions, callback).on('error', (e) => {
+        //console.error('Error - retrying #', i, maxRetries)
+        // ignore
+        if (i === maxRetries) {
+          return reject({
+            message: "Request error ",
+            url: fullUrl,
+          })
+        }
+      }).end()
+      break
+    }
   })
 }
 

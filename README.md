@@ -43,7 +43,7 @@ Options:
                                                              [string] [required]
   -o, --outputFolder               path                      [string] [required]
   -m, --stripMultiPartMimeWrapper  removes the multi part mime wrapper around im
-                                   age frames and instances            [boolean]
+                                   age frames and instances and          [boolean]
   -q, --quiet                      suppresses status messages to stdout[boolean]
   -i, --include full instance      adds the full instance to the dump (DICOM P10
                                     instance)                          [boolean]
@@ -94,4 +94,3 @@ time to complete request, HTTP headers returned and multi-part mime header
 ### Optimizations
 * See if getAttachments() can be optimized - just use Buffer instead of Uint8Array?  
 * Make application streamable to reduce memory?
-* -m to store the extracted content/attachment as separate file

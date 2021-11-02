@@ -22,7 +22,7 @@ const processCommandLineArguments = () => {
         })
         .option('m', {
             alias: 'stripMultiPartMimeWrapper',
-            description: 'removes the multi part mime wrapper around image frames and instances',
+            description: 'removes the multi part mime wrapper around image frames and instances and saves it as a separate file with .bin extension',
             type: 'boolean',
         })
         .option('q', {
