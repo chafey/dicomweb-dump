@@ -75,7 +75,7 @@ $outputFolder/$studyUid/series/<seriesuid>/instances/<sopinstanceuid>/_/<sopinst
 dicomweb-dump -w https://server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs/studies -s 1.3.6.1.4.1.25403.345050719074.3824.20170126085406.1 -o output -i -m
 ```
 
-### Large Ct
+### Large CT (Note - some images in this study return errors)
 ```
 dicomweb-dump -w https://server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs/studies -s 1.3.6.1.4.1.14519.5.2.1.7009.2403.129940714907926843330943219641 -o output -s
 ```
