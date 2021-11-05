@@ -1,6 +1,7 @@
 import getAndWrite from './getAndWrite.mjs'
 import path from 'path'
 import Queue from 'promise-queue'
+import dumpInstance from './dumpInstance.mjs'
 
 const handleError = (message, err, options) => {
     if (!options.quiet) {
@@ -52,32 +53,13 @@ const dumpStudy = async (wadoRsRootUrl, outputFolder, studyUid, options) => {
             }
             // Get Sop Instance metadata (JSON)
             const sopInstanceRootUrl = seriesRootUrl + '/instances/' + sopInstanceUid
-            promises.push(queue.add(async () => {
-                await getAndWrite(sopInstanceRootUrl, instanceRootPath, 'metadata', false, options).then((res) => {
-                    const sopInstanceMetaData = JSON.parse(res.bodyAsBuffer)
-                    const hasPixelData = sopInstanceMetaData[0]['7FE00010']
-                    if (hasPixelData) {
-                        const frameRootUrl = sopInstanceRootUrl + '/frames'
-                        const frameRootPath = path.join(instanceRootPath, 'frames')
-                        const frames = sopInstanceMetaData[0]['00280008'] ?? 1
-                        for (let frameIndex = 1; frameIndex <= frames; frameIndex++) {
-                            promises.push(queue.add(() => getAndWrite(frameRootUrl, frameRootPath, '/' + frameIndex, true, options))
-                                .catch((err) => {
-                                    handleError('instance frame', err, options)
-                                }))
-                        }
-                    }
-                    // TODO: BulkData
-                })
-                    .catch((err) => {
-                        handleError('instance metadata', err, options)
-                    })
-
-            }))
-        }
-    }
+            promises.push(queue.add(() => dumpInstance(sopInstanceRootUrl, instanceRootPath, queue, options)))
+            console.log('dumpInstance pushed')
+        } // look over sop instances
+    } // for() over series
 
     // wait for all promises to resolve or one of them to reject
+    console.log('promises2.length=', promises.length)
     await Promise.all(promises)
 }
 

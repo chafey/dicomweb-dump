@@ -4,7 +4,7 @@
   "description": "CLI tool to dump DICOMweb WADO-RS responses to disk",
   "main": "src/index.mjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --recursive --trace-warnings --unhandled-rejections=strict"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,12 @@
   },
   "homepage": "https://github.com/chafey/dicomweb-dump#readme",
   "dependencies": {
+    "got": "^11.8.2",
     "promise-queue": "^2.2.5",
+    "stream-buffers": "^3.0.2",
     "yargs": "^17.2.1"
+  },
+  "devDependencies": {
+    "mocha": "^9.1.3"
   }
 }

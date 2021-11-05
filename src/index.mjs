@@ -16,6 +16,10 @@ const main = async () => {
   }
 
   await dumpStudy(argv.w, argv.o, argv.s, options)
+
+  const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+  //await delay(1000)
 }
 
 main().then(() => {

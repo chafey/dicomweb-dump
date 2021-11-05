@@ -29,10 +29,11 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
     headers: {}
   }
 
+  //console.log(requestOptions.path)
+
   if (options.authorization) {
     requestOptions.headers.Authorization = options.authorization
   }
-
 
   return new Promise((resolve, reject) => {
 
@@ -45,6 +46,7 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
       //the whole response has been received, so we just print it out here
       response.on('end', async function () {
         const requestTimeInMS = Date.now() - start;
+        //console.log('response.statusCode', response.statusCode)
         if (response.statusCode !== 200) {
           printProgress('' + completedRequestCount + '/' + ++errorCount + '/' + totalRequestCount)
           return reject({
@@ -66,6 +68,7 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
 
         fs.mkdirSync(basePath, { recursive: true })
         const filePath = path.join(basePath, resourcePath)
+        //console.log('filePath=', filePath)
         fs.writeFileSync(filePath, bodyAsBuffer)
 
         if (multiPart) {
@@ -98,6 +101,7 @@ const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) 
     let i = 1
     while (true) {
       https.request(requestOptions, callback).on('error', (e) => {
+        console.log('error')
         if (!options.quiet) {
           console.error('Request error - retrying #' + i, e)
         }
