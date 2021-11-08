@@ -1,10 +1,13 @@
 import getUrlToStream from '../src/getUrlToStream.mjs'
 import assert from 'assert'
 import streamBuffers from 'stream-buffers'
+import fs from 'fs'
+import nock from 'nock'
+import { PassThrough } from 'stream'
 
 describe('getUrlToStream', async () => {
 
-    it('exports', async () => {
+    it('exports', () => {
         // Arrange
 
         // Act
@@ -15,52 +18,74 @@ describe('getUrlToStream', async () => {
 
     it('basics', async () => {
         // Arrange
-        const uri = 'https:/server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs/studies/1.3.6.1.4.1.25403.345050719074.3824.20170126085406.1/series/1.3.6.1.4.1.25403.345050719074.3824.20170126085406.2/instances/1.3.6.1.4.1.25403.345050719074.3824.20170126085406.3/metadata';
+        const scope = nock('https://sindresorhus.com')
+            .get('/')
+            .reply(200)
+            .persist()
+        const uri = 'https://sindresorhus.com'
         const outStream = new streamBuffers.WritableStreamBuffer()
+        const options = { http2: false } // disable http2 since nock doesn't support it
 
         // Act
-        const dump = await getUrlToStream(uri, outStream, {})
+        const dump = await getUrlToStream(uri, outStream, options)
         //console.dir(dump)
 
         // Assert
         assert.ok(dump)
-    })
-
-    it('dump', async () => {
-        // Arrange
-        const uri = 'https:/server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs/studies/1.3.6.1.4.1.25403.345050719074.3824.20170126085406.1/series/1.3.6.1.4.1.25403.345050719074.3824.20170126085406.2/instances/1.3.6.1.4.1.25403.345050719074.3824.20170126085406.3/metadata';
-        const outStream = new streamBuffers.WritableStreamBuffer()
-
-        // Act
-        const dump = await getUrlToStream(uri, outStream, {})
-        //console.log(dump)
-
-        // Assert
         assert.ok(dump.url)
         assert.ok(dump.request)
         assert.ok(dump.request.headers)
         assert.ok(dump.response)
-        assert.notEqual(dump.response.timeToHeaderInMS, undefined)
+        assert.notEqual(dump.response.timeToFirstByteInMS, undefined)
         assert.ok(dump.response.headers)
         assert.ok(dump.response.statusCode)
-        assert.ok(dump.response.httpVersion)
+        assert.ok(dump.response.httpVersion !== undefined)
         assert.notEqual(dump.response.timeToLastByteInMS, undefined)
+        scope.persist(false)
     })
 
-
-
-    it('bad url fails', async () => {
+    it('cannot connect to server fails', (done) => {
         // Arrange
-        const uri = 'https:/server.dcmjssdfsdfds.org/'
+        const uri = 'barf'
         const outStream = new streamBuffers.WritableStreamBuffer()
+        const options = { http2: false } // disable http2 since nock doesn't support it
 
         // Act
-        const promise = getUrlToStream(uri, outStream, {})
+        const promise = getUrlToStream(uri, outStream, options)
 
         // Assert
-        promise
-            .then(() => { assert.fail('was not supposed to succeed') })
-            .catch(() => { })
+        promise.then(() => {
+            assert.fail('was not supposed to succeed')
+        }).catch((err) => {
+            assert.ok(err)
+        }).finally(() => {
+            done()
+        })
     })
 
+    it('bad outStream fails', (done) => {
+        // Arrange
+        const scope = nock('https://sindresorhus.com')
+            .get('/')
+            .reply(200)
+            .persist()
+        const uri = 'https://sindresorhus.com'
+        const outStream = new PassThrough();
+        const options = { http2: false } // disable http2 since nock doesn't support it
+
+        // Act
+        const promise = getUrlToStream(uri, outStream, options)
+        outStream.emit('error', 'out stream failed')
+        outStream.emit('close')
+
+        // Assert
+        promise.then(() => {
+            assert.fail('was not supposed to succeed')
+        }).catch((err) => {
+            assert.ok(err)
+        }).finally(() => {
+            scope.persist(false)
+            done()
+        })
+    })
 })

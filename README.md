@@ -17,7 +17,7 @@ In development/alpha (as of Nov 2, 2021).  Beta release targeted for Nov 8, 2021
 
 ## Prerequisites
 
-* NodeJS (v14.18.1 used but earlier/later versions should also)
+* NodeJS (v16.13.0 or later)
 * NPM
 
 Install dependencies

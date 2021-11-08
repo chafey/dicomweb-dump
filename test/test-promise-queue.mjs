@@ -31,6 +31,5 @@ describe('promise-queue', async () => {
         // Assert
         assert.strictEqual(rejectCount, 1)
         assert.strictEqual(resolveCount, 1)
-
     })
 })

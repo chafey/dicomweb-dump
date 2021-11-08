@@ -18,7 +18,7 @@ const createPromise = () => {
     return result
 }
 
-describe('promise-queue', async () => {
+describe('queue', async () => {
 
     it('happy path', async () => {
         // Arrange
