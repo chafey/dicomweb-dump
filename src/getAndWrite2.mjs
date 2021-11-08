@@ -1,35 +1,18 @@
 import getUrlToStream from './getUrlToStream.mjs'
+import { promises as fsasync } from 'fs'
 import fs from 'fs'
-import { promisify } from 'util'
 
-const getAndWrite = (sourceUri, outFilePath, options) => {
-    return new Promise((resolve, reject) => {
+const getAndWrite = async (sourceUri, outFilePath, options) => {
+    try {
         const writeStream = fs.createWriteStream(outFilePath)
-        writeStream.on('error', (err) => {
-            if (err) {
-                writeStream.end()
-                reject({
-                    message: 'failed to create file ' + outFilePath,
-                    err
-                })
-            }
-        })
-        getUrlToStream(sourceUri, writeStream, options).then((dump) => {
-            fs.writeFile(outFilePath + '.dump.json', dump, (err) => {
-                if (err) {
-                    reject({
-                        message: 'failed to create file ' + outFilePath + '.dump.json',
-                        err
-                    })
-                }
-                resolve(dump)
-            })
-        }).catch((err) => {
-            fs.unlink(outFilePath, () => {
-                reject(err)
-            })
-        })
-    })
+        const dump = await getUrlToStream(sourceUri, writeStream, options)
+        await fsasync.writeFile(outFilePath + '.dump.json', JSON.stringify(dump, null, 2))
+        return dump
+    }
+    catch (err) {
+        fsasync.unlink(outFilePath)
+        throw err
+    }
 }
 
 export default getAndWrite

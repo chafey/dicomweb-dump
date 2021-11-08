@@ -1,7 +1,6 @@
 import getUrlToStream from '../src/getUrlToStream.mjs'
 import assert from 'assert'
 import streamBuffers from 'stream-buffers'
-import fs from 'fs'
 import nock from 'nock'
 import { PassThrough } from 'stream'
 
@@ -41,6 +40,27 @@ describe('getUrlToStream', async () => {
         assert.ok(dump.response.statusCode)
         assert.ok(dump.response.httpVersion !== undefined)
         assert.notEqual(dump.response.timeToLastByteInMS, undefined)
+        scope.persist(false)
+    })
+
+    it('authorization header', async () => {
+        // Arrange
+        const scope = nock('https://sindresorhus.com')
+            .get('/')
+            .reply(200)
+            .persist()
+        const uri = 'https://sindresorhus.com'
+        const outStream = new streamBuffers.WritableStreamBuffer()
+        const options = {
+            authorization: 'BEARER: FOO',
+            http2: false // disable http2 since nock doesn't support it
+        }
+
+        // Act
+        const dump = await getUrlToStream(uri, outStream, options)
+
+        // Assert
+        assert.ok(dump.request.headers.authorization)
         scope.persist(false)
     })
 
