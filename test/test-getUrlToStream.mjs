@@ -64,7 +64,7 @@ describe('getUrlToStream', async () => {
         scope.persist(false)
     })
 
-    it('cannot connect to server fails', (done) => {
+    it('bad url fails', (done) => {
         // Arrange
         const uri = 'barf'
         const outStream = new streamBuffers.WritableStreamBuffer()
@@ -78,7 +78,7 @@ describe('getUrlToStream', async () => {
             assert.fail('was not supposed to succeed')
         }).catch((err) => {
             assert.ok(err)
-        }).finally(() => {
+            assert.strictEqual(err.code, 'ERR_INVALID_URL')
             done()
         })
     })
@@ -103,9 +103,10 @@ describe('getUrlToStream', async () => {
             assert.fail('was not supposed to succeed')
         }).catch((err) => {
             assert.ok(err)
+            assert.strictEqual(err, 'out stream failed')
+            done()
         }).finally(() => {
             scope.persist(false)
-            done()
         })
     })
 })

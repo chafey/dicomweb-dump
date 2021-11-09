@@ -1,23 +1,13 @@
-/*import concurrentGetAndWrite from '../src/concurrentGetAndWrite.mjs'
+import concurrentGetAndWrite from '../src/concurrentGetAndWrite.mjs'
 import assert from 'assert'
 import fs from 'fs'
+import RequestQueue from '../src/requestQueue.mjs'
+import getAndWrite from '../src/getAndWrite2.mjs'
+import nock from 'nock'
 
 const outFilePath = 'metadata.json'
 
 describe('concurrentGetAndWrite', async () => {
-
-    beforeEach(function () {
-        if (fs.existsSync(outFilePath)) {
-            fs.unlinkSync(outFilePath)
-        }
-    });
-
-    afterEach(function () {
-        if (fs.existsSync(outFilePath)) {
-            fs.unlinkSync(outFilePath)
-        }
-    });
-
 
     it('exports', async () => {
         // Arrange
@@ -27,55 +17,48 @@ describe('concurrentGetAndWrite', async () => {
         // Assert
         assert.notStrictEqual(concurrentGetAndWrite, undefined)
     })
-
-    it('basics', async () => {
+    it('good url succeeds', async () => {
         // Arrange
-        const uri = 'https:/server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs/studies/1.3.6.1.4.1.25403.345050719074.3824.20170126085406.1/series/1.3.6.1.4.1.25403.345050719074.3824.20170126085406.2/instances/1.3.6.1.4.1.25403.345050719074.3824.20170126085406.3/metadata';
+        const scope = nock('https://sindresorhus.com')
+            .get('/')
+            .reply(200)
+            .persist()
+        const uri = 'https://sindresorhus.com'
         const outFilePath = 'metadata.json'
+        const options = { http2: false } // disable http2 since nock doesn't support it
+        const executor = (request) => {
+            return getAndWrite(request.sourceUri, request.outFilePath, request.options)
+        }
+        const requestQueue = new RequestQueue(executor)
 
         // Act
-        const dump = await concurrentGetAndWrite(uri, outFilePath, {})
+        const promise = concurrentGetAndWrite(uri, outFilePath, requestQueue, options)
+        await requestQueue.empty()
+        const dump = await promise
         //console.dir(dump)
 
         // Assert
         assert.ok(dump)
         assert.ok(fs.existsSync(outFilePath))
-    })
-
-    it('dump', async () => {
-        // Arrange
-        const uri = 'https:/server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs/studies/1.3.6.1.4.1.25403.345050719074.3824.20170126085406.1/series/1.3.6.1.4.1.25403.345050719074.3824.20170126085406.2/instances/1.3.6.1.4.1.25403.345050719074.3824.20170126085406.3/metadata';
-        const outFilePath = 'metadata.json'
-
-        // Act
-        const dump = await concurrentGetAndWrite(uri, outFilePath, {})
-        //console.log(dump)
-
-        // Assert
-        assert.ok(fs.existsSync(outFilePath))
-        assert.ok(dump.url)
-        assert.ok(dump.request)
-        assert.ok(dump.request.headers)
-        assert.ok(dump.response)
-        assert.notEqual(dump.response.timeToHeaderInMS, undefined)
-        assert.ok(dump.response.headers)
-        assert.ok(dump.response.statusCode)
-        assert.ok(dump.response.httpVersion)
-        assert.notEqual(dump.response.timeToLastByteInMS, undefined)
+        scope.persist(false)
     })
 
     it('bad url fails', async () => {
         // Arrange
-        const uri = 'https:/server.dcmjssdfsdfds.org/'
+        const uri = 'barf';
         const outFilePath = 'metadata.json'
+        const options = { http2: false } // disable http2 since nock doesn't support it
+        const executor = (request) => {
+            return getAndWrite(request.sourceUri, request.outFilePath, request.options)
+        }
+        const requestQueue = new RequestQueue(executor)
 
         // Act
-        const promise = concurrentGetAndWrite(uri, outFilePath, {})
+        const promise = concurrentGetAndWrite(uri, outFilePath, requestQueue, options)
+        await requestQueue.empty()
 
         // Assert
-        promise
-            .then(() => { assert.fail('was not supposed to succeed') })
-            .catch(() => { })
+        assert.rejects(() => promise)
+        assert.ok(!fs.existsSync(outFilePath))
     })
 })
-*/

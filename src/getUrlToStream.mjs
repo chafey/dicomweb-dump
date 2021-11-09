@@ -26,7 +26,8 @@ const getUrlToStream = async (sourceUri, outStream, options) => {
     }
 
     // get the url using the request option
-    const downloadStream = got.stream(sourceUri, createRequestOptions(options))
+    let downloadStream
+    downloadStream = got.stream(sourceUri, createRequestOptions(options))
 
     // Save the request headers
     dump.request.headers = downloadStream.options.headers

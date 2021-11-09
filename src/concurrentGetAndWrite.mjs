@@ -1,10 +1,6 @@
-import getAndWrite from './getAndWrite2.mjs'
-import queue from './queue.mjs'
 
-const concurrentGetAndWrite = (sourceUri, outFilePath, options) => {
-    return queue.add(() => {
-        return getAndWrite(sourceUri, outFilePath, options)
-    })
+const concurrentGetAndWrite = (sourceUri, outFilePath, requestQueue, options) => {
+    return requestQueue.add({ sourceUri, outFilePath, options })
 }
 
 export default concurrentGetAndWrite
