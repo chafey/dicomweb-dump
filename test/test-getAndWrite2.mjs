@@ -7,25 +7,6 @@ const outFilePath = 'metadata'
 
 describe('getAndWrite2', async () => {
 
-    beforeEach(function () {
-        if (fs.existsSync(outFilePath)) {
-            fs.unlinkSync(outFilePath)
-        }
-        if (fs.existsSync(outFilePath + '.dump.json')) {
-            fs.unlinkSync(outFilePath + '.dump.json')
-        }
-    });
-
-    afterEach(function () {
-        if (fs.existsSync(outFilePath)) {
-            fs.unlinkSync(outFilePath)
-        }
-        if (fs.existsSync(outFilePath + '.dump.json')) {
-            fs.unlinkSync(outFilePath + '.dump.json')
-        }
-    });
-
-
     it('exports', async () => {
         // Arrange
 
@@ -67,7 +48,8 @@ describe('getAndWrite2', async () => {
             assert.fail('was not supposed to succeed')
         }).catch((err) => {
             assert.ok(err)
-            assert.strictEqual(fs.existsSync(outFilePath), false)
+            const exists = fs.existsSync(outFilePath)
+            assert.strictEqual(exists, false)
         }).finally(() => {
             done()
         })

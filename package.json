@@ -4,7 +4,7 @@
   "description": "CLI tool to dump DICOMweb WADO-RS responses to disk",
   "main": "src/index.mjs",
   "scripts": {
-    "test": "mocha --recursive --trace-warnings --unhandled-rejections=strict"
+    "test": "mocha --parallel --recursive --trace-warnings --unhandled-rejections=strict"
   },
   "repository": {
     "type": "git",
