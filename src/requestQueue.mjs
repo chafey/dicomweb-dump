@@ -36,7 +36,7 @@ RequestQueue.prototype._dequeue = async function () {
     }
 
     // if we have more pending entries than max allowed, return immediately
-    if (self.pending.size > self.maxPending) {
+    if (self.pending.size >= self.maxPending) {
         return
     }
 
@@ -47,6 +47,7 @@ RequestQueue.prototype._dequeue = async function () {
     // perform the request
     try {
         const result = await self.executor(queueItem.request)
+        //console.log('result=', result)
         queueItem.resolve(result)
     }
     catch (err) {
@@ -56,18 +57,35 @@ RequestQueue.prototype._dequeue = async function () {
     finally {
         // remove from pending list and try to dequeue the next entry
         self.pending.delete(queueItem)
+        self._dequeue()
     }
+
 }
 
 RequestQueue.prototype.empty = async function () {
     const self = this
-    do {
-        //console.log('promises.size=', self.promises.size)
-        await self._dequeue()
-    } while (self.promises.size > 0)
-    //console.log('promises.size=', self.promises.size)
-}
 
+    return new Promise((resolve, reject) => {
+        const runMore = async () => {
+            if (self.promises.size === 0) {
+                resolve()
+            } else {
+                const numToStart = (self.maxPending - self.pending.size)
+                const promises = Array.from(self.pending)
+                for (let i = 0; i < numToStart; i++) {
+                    promises.push(self._dequeue())
+                }
+                try {
+                    await Promise.any(promises)
+                } catch (err) {
+                    console.log(err)
+                }
+                setTimeout(runMore, 0)
+            }
+        }
+        setTimeout(runMore, 0)
+    })
+}
 RequestQueue.prototype.stats = function () {
     const self = this
     return {

@@ -30,7 +30,6 @@ describe('RequestQueue', async () => {
         const promise = queue.add({ message: 'hello' })
         await queue.empty()
 
-        // Assert
         assert.rejects(() => promise)
     })
 

@@ -24,14 +24,15 @@ describe('engine', async () => {
             stripMultiPartMimeWrapper: false,
             quiet: false,
             includeFullInstance: false,
-            concurrency: 1,
+            concurrency: 5,
             abort: false,
             retry: 3,
             authorization: undefined,
 
         }
         await engine.configure(options)
-        const studyUid = '1.3.6.1.4.1.25403.345050719074.3824.20170126085406.1'
+        const studyUid = '1.3.6.1.4.1.25403.345050719074.3824.20170126085406.1' // CR
+        //const studyUid = '1.3.6.1.4.1.14519.5.2.1.7009.2403.129940714907926843330943219641' // Large CT
 
         // Act
         const p = engine.dumpStudy(studyUid)

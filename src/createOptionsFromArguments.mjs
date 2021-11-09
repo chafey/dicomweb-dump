@@ -1,5 +1,7 @@
 const createOptionsFromArguments = (argv) => {
     return {
+        wadoRsRootUrl: argv.w,
+        outputFolder: argv.o,
         stripMultiPartMimeWrapper: argv.m,
         quiet: argv.q,
         includeFullInstance: argv.i,

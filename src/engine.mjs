@@ -24,8 +24,13 @@ const wait = async () => {
     await requestQueue.empty()
 }
 
+const stats = async () => {
+    return requestQueue.stats()
+}
+
 export default {
     configure,
     dumpStudy,
-    wait
+    wait,
+    stats
 }

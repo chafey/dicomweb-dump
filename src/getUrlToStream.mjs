@@ -5,6 +5,7 @@ const createRequestOptions = (options) => {
     // enable HTTP2 by default
     const requestOptions = {
         http2: options.http2 ?? true,
+        throwHttpErrors: false,
         headers: {}
     }
 

@@ -10,6 +10,7 @@ const getAndWrite = async (sourceUri, outFilePath, options) => {
         return dump
     }
     catch (err) {
+        //console.log('-----', err)
         fs.unlinkSync(outFilePath)
         throw err
     }

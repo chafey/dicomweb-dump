@@ -11,9 +11,9 @@ In development/alpha (as of Nov 2, 2021).  Beta release targeted for Nov 8, 2021
 * Dump instance metadata
 * Dump instance
 * Dump instance frames
-* Write to disk with multi-part mime headers removed in $.bin
 * Records HTTP headers, time to get response and multi-part mime headers to disk $.dump.json
 * Concurrent requests for faster downloads (and stress testing servers)
+* Supports requests over http2 (on by default - can be disabled)
 
 ## Prerequisites
 
@@ -94,7 +94,7 @@ time to complete request, HTTP headers returned and multi-part mime header
 * Add option to dump qido-rs study series and series instance responses
 * Report performance/timing information
 * Add option to pretty print JSON?
-* Add support for making requests over HTTP/2
+* Write to disk with multi-part mime headers removed in $.bin
 
 ### Reuse
 * Consider separating the fetch logic into a separate library so it can be re-used?
