@@ -18,6 +18,7 @@ describe('engine', async () => {
 
     it('basics', async () => {
         // Arrange
+        // TODO: Mock up all the requests with nock
         const options = {
             wadoRsRootUrl: 'https://server.dcmjs.org/dcm4chee-arc/aets/DCM4CHEE/rs/studies',
             outputFolder: 'output',
@@ -32,7 +33,6 @@ describe('engine', async () => {
         }
         await engine.configure(options)
         const studyUid = '1.3.6.1.4.1.25403.345050719074.3824.20170126085406.1' // CR
-        //const studyUid = '1.3.6.1.4.1.14519.5.2.1.7009.2403.129940714907926843330943219641' // Large CT
 
         // Act
         const p = engine.dumpStudy(studyUid)
@@ -40,52 +40,6 @@ describe('engine', async () => {
         const studyResults = await p
 
         // Assert
+        // TODO: assert more stuff here
     })
-
-    /*
-    it('good url succeeds', async () => {
-        // Arrange
-        const scope = nock('https://sindresorhus.com')
-            .get('/')
-            .reply(200)
-            .persist()
-        const uri = 'https://sindresorhus.com'
-        const outFilePath = 'metadata.json'
-        const options = { http2: false } // disable http2 since nock doesn't support it
-        const executor = (request) => {
-            return getAndWrite(request.sourceUri, request.outFilePath, request.options)
-        }
-        const requestQueue = new RequestQueue(executor)
-
-        // Act
-        const promise = concurrentGetAndWrite(uri, outFilePath, requestQueue, options)
-        await requestQueue.empty()
-        const dump = await promise
-        //console.dir(dump)
-
-        // Assert
-        assert.ok(dump)
-        assert.ok(fs.existsSync(outFilePath))
-        scope.persist(false)
-    })
-
-    it('bad url fails', async () => {
-        // Arrange
-        const uri = 'barf';
-        const outFilePath = 'metadata.json'
-        const options = { http2: false } // disable http2 since nock doesn't support it
-        const executor = (request) => {
-            return getAndWrite(request.sourceUri, request.outFilePath, request.options)
-        }
-        const requestQueue = new RequestQueue(executor)
-
-        // Act
-        const promise = concurrentGetAndWrite(uri, outFilePath, requestQueue, options)
-        await requestQueue.empty()
-
-        // Assert
-        assert.rejects(() => promise)
-        assert.ok(!fs.existsSync(outFilePath))
-    })
-    */
 })

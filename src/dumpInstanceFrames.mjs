@@ -1,4 +1,4 @@
-import fs from 'fs'
+import { promises as fsasync } from 'fs'
 import path from 'path'
 
 const getFrames = (sopInstanceMetaData) => {
@@ -26,13 +26,14 @@ const dumpInstanceFrames = async (requestQueue, sopInstanceRootUrl, sopInstanceR
     }
     const frameRootUrl = sopInstanceRootUrl + '/frames'
     const frameRootPath = path.join(sopInstanceRootPath, 'frames')
-    fs.mkdirSync(frameRootPath, { recursive: true })
+    await fsasync.mkdir(frameRootPath, { recursive: true })
     const frames = getFrames(sopInstanceMetaData)
     const promises = []
     for (let frameIndex = 1; frameIndex <= frames; frameIndex++) {
         const frameUrl = frameRootUrl + '/' + frameIndex
         const framePath = frameRootPath + '/' + frameIndex
-        await requestQueue.add({ sourceUri: frameUrl, outFilePath: framePath, options })
+        const promise = requestQueue.add({ sourceUri: frameUrl, outFilePath: framePath, options })
+        promises.push(promise)
     }
     return Promise.allSettled(promises)
 }
