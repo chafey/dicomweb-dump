@@ -1,120 +1,18 @@
+import getUrlToStream from './getUrlToStream.mjs'
+import { promises as fsasync } from 'fs'
 import fs from 'fs'
-import path from 'path'
-import getAttachments from './getAttachments.mjs'
-import { URL } from 'url'
-import https from 'https'
 
-function printProgress(progress) {
-  process.stdout.clearLine();
-  process.stdout.cursorTo(0);
-  process.stdout.write(progress);
-}
-
-let totalRequestCount = 0
-let errorCount = 0
-let completedRequestCount = 0
-
-const getAndWrite = async (baseUrl, basePath, resourcePath, multiPart, options) => {
-
-  printProgress('' + completedRequestCount + '/' + errorCount + '/' + ++totalRequestCount)
-
-  const fullUrl = path.join(baseUrl, resourcePath)
-  const start = Date.now();
-
-  const myURL = new URL(fullUrl);
-
-  const requestOptions = {
-    hostname: myURL.host,
-    path: myURL.pathname,
-    headers: {}
-  }
-
-  //console.log(requestOptions.path)
-
-  if (options.authorization) {
-    requestOptions.headers.Authorization = options.authorization
-  }
-
-  return new Promise((resolve, reject) => {
-
-    const callback = (response) => {
-      const data = [];
-      response.on('data', function (chunk) {
-        data.push(chunk)
-      });
-
-      //the whole response has been received, so we just print it out here
-      response.on('end', async function () {
-        const requestTimeInMS = Date.now() - start;
-        //console.log('response.statusCode', response.statusCode)
-        if (response.statusCode !== 200) {
-          printProgress('' + completedRequestCount + '/' + ++errorCount + '/' + totalRequestCount)
-          return reject({
-            message: "Server returned HTTP status code " + response.statusCode,
-            url: fullUrl
-          })
-        }
-
-        let bodyAsBuffer = Buffer.concat(data);
-
-        const dump = {
-          url: fullUrl,
-          requestTimeInMS: requestTimeInMS,
-          httpHeaders: response.headers
-        }
-
-        //console.log(response)
-        //console.dir(dump)
-
-        fs.mkdirSync(basePath, { recursive: true })
-        const filePath = path.join(basePath, resourcePath)
-        //console.log('filePath=', filePath)
-        fs.writeFileSync(filePath, bodyAsBuffer)
-
-        if (multiPart) {
-          try {
-            const attachments = getAttachments(bodyAsBuffer)
-            if (options.stripMultiPartMimeWrapper) {
-              const filePath = path.join(basePath, resourcePath + ".bin")
-              fs.writeFileSync(filePath, attachments[0].content)
-            }
-            dump.contentType = attachments[0].contentType
-          } catch (ex) {
-            return reject({
-              message: "Multipart parsing failed",
-              url: fullUrl
-            })
-          }
-        }
-
-        fs.writeFileSync(filePath + '.dump.json', JSON.stringify(dump, null, 2))
-
-        printProgress('' + ++completedRequestCount + '/' + errorCount + '/' + totalRequestCount)
-
-        resolve({
-          bodyAsBuffer,
-          dump
-        })
-      });
+const getAndWrite = async (sourceUri, outFilePath, options) => {
+    try {
+        const writeStream = fs.createWriteStream(outFilePath)
+        const dump = await getUrlToStream(sourceUri, writeStream, options)
+        await fsasync.writeFile(outFilePath + '.dump.json', JSON.stringify(dump, null, 2))
+        return dump
     }
-    // NOTE - requests tend to fail under high concurrency so retry if this happens
-    let i = 1
-    while (true) {
-      https.request(requestOptions, callback).on('error', (e) => {
-        console.log('error')
-        if (!options.quiet) {
-          console.error('Request error - retrying #' + i, e)
-        }
-        if (i === options.retry) {
-          return reject({
-            message: "Request error ",
-            url: fullUrl,
-          })
-        }
-      }).end()
-      break
+    catch (err) {
+        await fsasync.unlink(outFilePath)
+        throw err
     }
-  })
 }
 
 export default getAndWrite

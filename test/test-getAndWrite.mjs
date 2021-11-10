@@ -1,4 +1,4 @@
-import getAndWrite from '../src/getAndWrite2.mjs'
+import getAndWrite from '../src/getAndWrite.mjs'
 import assert from 'assert'
 import fs from 'fs'
 import nock from 'nock'
