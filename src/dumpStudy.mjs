@@ -2,6 +2,8 @@ import fs from 'fs'
 import path from 'path'
 import dumpInstanceMetaData from './dumpInstanceMetaData.mjs'
 import dumpInstanceP10 from './dumpInstanceP10.mjs'
+import { promises as fsasync } from 'fs'
+import dumpInstanceFrames from './dumpInstanceFrames.mjs'
 
 const dumpStudy = async (requestQueue, studyUid, options) => {
     //console.log(requestQueue, studyUid, options)
@@ -45,7 +47,14 @@ const dumpStudy = async (requestQueue, studyUid, options) => {
                 dumpInstanceP10()
 
                 // Get sop instance metadata
-                dumpInstanceMetaData(requestQueue, sopInstanceRootUrl, sopInstanceRootPath, options)
+                dumpInstanceMetaData(requestQueue, sopInstanceRootUrl, sopInstanceRootPath, options).then(async (dump) => {
+                    const sopInstanceMetaDataPath = sopInstanceRootPath + '/metadata'
+                    const body = fs.readFileSync(sopInstanceMetaDataPath)
+                    const sopInstanceMetaData = JSON.parse(body)
+                    await dumpInstanceFrames(requestQueue, sopInstanceRootUrl, sopInstanceRootPath, sopInstanceMetaData[0], options)
+                }).catch((err) => {
+                    fsasync.rm(sopInstanceRootPath, { recursive: true, force: true })
+                })
             }
         })
     }
