@@ -14,6 +14,7 @@ In development/alpha (as of Nov 2, 2021).  Beta release targeted for Nov 8, 2021
 * Records HTTP headers, time to get response and multi-part mime headers to disk $.dump.json
 * Concurrent requests for faster downloads (and stress testing servers)
 * Supports requests over http2 (on by default - can be disabled)
+* Stream based to minimize memory overhead and maximize concurrency
 
 ## Prerequisites
 
@@ -35,29 +36,24 @@ Uninstall
 ## Usage
 
 ```
-Usage: dicomweb-dump [options]
+Usage: index.mjs [options]
 
 Options:
-      --version                    Show version number                 [boolean]
-  -w, --wadoRsRootUrl              WADO-RS Root Url          [string] [required]
-  -s, --studyUid                   The Study Instance UID to dump
-                                                             [string] [required]
-  -o, --outputFolder               path                      [string] [required]
-  -m, --stripMultiPartMimeWrapper  removes the multi part mime wrapper around im
-                                   age frames and instances and saves it as a se
-                                   parate file with .bin extension     [boolean]
-  -q, --quiet                      suppresses status messages to stdout[boolean]
-  -i, --include full instance      adds the full instance to the dump (DICOM P10
-                                    instance)                          [boolean]
-  -c, --concurrency                controls maximum concurrent request count (de
-                                   fault is 1)                          [number]
-  -a, --abort                      abort processing on any errors (default is fa
-                                   lse/off)                            [boolean]
-  -r, --retry                      request failure retry count (default 3)
-                                                                        [number]
-  -z, --authorization              HTTP Authorization header value      [string]
-  -h, --help                       Show help                           [boolean]
-```
+      --version                Show version number                     [boolean]
+  -w, --wadoRsRootUrl          WADO-RS Root Url              [string] [required]
+  -s, --studyUid               The Study Instance UID to dump[string] [required]
+  -o, --outputFolder           path                          [string] [required]
+  -q, --quiet                  suppresses status messages to stdout    [boolean]
+  -i, --include full instance  adds the full instance to the dump (DICOM P10 ins
+                               tance)                                  [boolean]
+  -c, --concurrency            controls maximum concurrent request count (defaul
+                               t is 1)                                  [number]
+  -a, --abort                  abort processing on any errors (default is false/
+                               off)                                    [boolean]
+  -r, --retry                  request failure retry count (default 3)  [number]
+  -z, --authorization          HTTP Authorization header value          [string]
+  -h, --help                   Show help                               [boolean]
+  ```
 
 ## Output Structure
 
@@ -101,4 +97,3 @@ time to complete request, HTTP headers returned and multi-part mime header
 
 ### Optimizations
 * See if getAttachments() can be optimized - just use Buffer instead of Uint8Array?  
-* Make application streamable to reduce memory?

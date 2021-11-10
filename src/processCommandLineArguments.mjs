@@ -20,11 +20,12 @@ const processCommandLineArguments = () => {
             description: 'path',
             type: 'string',
         })
+        /*
         .option('m', {
             alias: 'stripMultiPartMimeWrapper',
             description: 'removes the multi part mime wrapper around image frames and instances and saves it as a separate file with .bin extension',
             type: 'boolean',
-        })
+        })*/
         .option('q', {
             alias: 'quiet',
             description: 'suppresses status messages to stdout',
