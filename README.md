@@ -9,7 +9,7 @@ In development/alpha (as of Nov 2, 2021).  Beta release targeted for Nov 8, 2021
 * Dump study metadata
 * Dump series metadata
 * Dump instance metadata
-* Dump instance
+* TODO: Dump instance
 * Dump instance frames
 * Records HTTP headers, time to get response and multi-part mime headers to disk $.dump.json
 * Concurrent requests for faster downloads (and stress testing servers)

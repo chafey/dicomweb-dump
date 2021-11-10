@@ -9,7 +9,6 @@ const main = async () => {
   const argv = processCommandLineArguments()
 
   const options = createOptionsFromArguments(argv)
-  options.http2 = false // turn off http2 for now
 
   // replace console.log if we are in quiet mode
   if (argv.q) {
