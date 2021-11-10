@@ -1,22 +1,20 @@
-const dumpInstanceP10 = () => {
+import { promises as fsasync } from 'fs'
+import path from 'path'
+
+const dumpInstanceP10 = async (requestQueue, sopInstanceRootUrl, sopInstanceRootPath, sopInstanceUid, options) => {
     // Get SopInstance (DICOM P10 format - multi-part mime wrapped)
-    /*if (options.includeFullInstance) {
+    if (options.includeFullInstance) {
         const sopInstanceInstanceRootPath = path.join(sopInstanceRootPath, '_')
-        fs.mkdirSync(sopInstanceInstanceRootPath, { recursive: true })
+        await fsasync.mkdir(sopInstanceInstanceRootPath, { recursive: true })
         const sopInstanceInstancePath = path.join(sopInstanceInstanceRootPath, sopInstanceUid)
-        requestQueue.add({ sourceUri: sopInstanceRootUrl, outFilePath: sopInstanceInstancePath, options })
-            .then((dump) => {
-                if (dump.response.statusCode !== 200) {
-                    fsasync.rm(sopInstanceInstanceRootPath, { recursive: true, force: true })
-                    requestQueue.failed++
-                    requestQueue.success--
-                }
-            }).catch((err) => {
-                if (err.code !== 'ENOENT') {
-                    console.log('zzz', err)
-                }
-            })
-    }*/
+        const dump = await requestQueue.add({ sourceUri: sopInstanceRootUrl, outFilePath: sopInstanceInstancePath, options })
+        if (dump.response.statusCode !== 200) {
+            //await fsasync.rm(sopInstanceInstanceRootPath, { recursive: true, force: true })
+            requestQueue.failed++
+            requestQueue.success--
+            //throw new Error('HTTP Request Failed', { cause: dump.responseStatusCode })
+        }
+    }
 }
 
 export default dumpInstanceP10

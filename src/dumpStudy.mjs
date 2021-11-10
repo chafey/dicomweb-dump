@@ -32,7 +32,7 @@ const dumpStudy = async (requestQueue, studyUid, options) => {
         const seriesMetaDataPath = seriesRootPath + '/metadata'
 
         // Get series metadata
-        requestQueue.add({ sourceUri: seriesMetaDataUrl, outFilePath: seriesMetaDataPath, options }).then(() => {
+        requestQueue.add({ sourceUri: seriesMetaDataUrl, outFilePath: seriesMetaDataPath, options }).then(async () => {
             const body = fs.readFileSync(seriesMetaDataPath)
             const seriesMetaData = JSON.parse(body)
             //console.log(seriesMetaData)
@@ -42,15 +42,16 @@ const dumpStudy = async (requestQueue, studyUid, options) => {
             for (const sopInstanceUid of sopInstanceUids) {
                 const sopInstanceRootUrl = seriesRootUrl + '/instances/' + sopInstanceUid
                 const sopInstanceRootPath = path.join(seriesRootPath, 'instances', sopInstanceUid)
-                fs.mkdirSync(sopInstanceRootPath, { recursive: true })
+                await fsasync.mkdir(sopInstanceRootPath, { recursive: true })
 
-                dumpInstanceP10()
+                // dump dicom p10 instance
 
                 // Get sop instance metadata
                 dumpInstanceMetaData(requestQueue, sopInstanceRootUrl, sopInstanceRootPath, options).then(async (dump) => {
                     const sopInstanceMetaDataPath = sopInstanceRootPath + '/metadata'
                     const body = fs.readFileSync(sopInstanceMetaDataPath)
                     const sopInstanceMetaData = JSON.parse(body)
+                    await dumpInstanceP10(requestQueue, sopInstanceRootUrl, sopInstanceRootPath, sopInstanceUid, options)
                     await dumpInstanceFrames(requestQueue, sopInstanceRootUrl, sopInstanceRootPath, sopInstanceMetaData[0], options)
                 }).catch((err) => {
                     fsasync.rm(sopInstanceRootPath, { recursive: true, force: true })
