@@ -1,66 +1,98 @@
-import getAndWrite from './getAndWrite.mjs'
+import fs from 'fs'
 import path from 'path'
-import Queue from 'promise-queue'
-import dumpInstance from './dumpInstance.mjs'
+import { promises as fsasync } from 'fs'
 
-const handleError = (message, err, options) => {
-    if (!options.quiet) {
-        console.error('ERROR - ', message, err)
-    }
-    if (options.abort) {
-        throw new Error(message + err.toString())
-    }
-}
+const dumpStudy = async (requestQueue, studyUid, options) => {
+    //console.log(requestQueue, studyUid, options)
+    const studyRootUrl = options.wadoRsRootUrl + '/' + studyUid
+    const studyRootPath = path.join(options.outputFolder, studyUid)
+    fs.mkdirSync(studyRootPath, { recursive: true })
 
-const dumpStudy = async (wadoRsRootUrl, outputFolder, studyUid, options) => {
-    const studyRootUrl = wadoRsRootUrl + '/' + studyUid
-    const studyRootPath = path.join(outputFolder, studyUid)
-
-    // setup queue for controlling concurrency
-    var maxQueue = Infinity;
-    var queue = new Queue(options.concurrency, maxQueue);
-
-    const promises = []
-
-    // Get Study Metadata (JSON)
-    const response = await getAndWrite(studyRootUrl, studyRootPath, 'metadata', false, options)
-    const studyMetaData = JSON.parse(response.bodyAsBuffer)
+    // Get study metadata
+    const sourceUri = studyRootUrl + '/metadata'
+    const outFilePath = studyRootPath + '/metadata'
+    await requestQueue.add({ sourceUri, outFilePath, options })
+    const body = fs.readFileSync(outFilePath)
+    const studyMetaData = JSON.parse(body)
+    //console.log(studyMetaData)
     const sopInstanceSeriesUids = studyMetaData.map((value) => value["0020000E"].Value[0])
     const uniqueSeriesUids = [...new Set(sopInstanceSeriesUids)]
 
     // iterate over each series in this study
     for (const seriesUid of uniqueSeriesUids) {
+        //console.log(seriesUid)
         const seriesRootUrl = studyRootUrl + '/series/' + seriesUid
         const seriesRootPath = path.join(studyRootPath, 'series', seriesUid)
+        fs.mkdirSync(seriesRootPath, { recursive: true })
 
-        // Get Series Metadata (JSON)
-        promises.push(queue.add(() => getAndWrite(seriesRootUrl, seriesRootPath, 'metadata', false, options))
-            .catch((err) => {
-                handleError('series metadata', err, options)
-            }))
+        const seriesMetaDataUrl = seriesRootUrl + '/metadata'
+        const seriesMetaDataPath = seriesRootPath + '/metadata'
 
-        // iterate over each instance in this series
-        const sopInstanceUids = studyMetaData.map((value) => value["00080018"].Value[0])
-        for (const sopInstanceUid of sopInstanceUids) {
-            const instanceRootPath = path.join(seriesRootPath, 'instances', sopInstanceUid)
+        // Get series metadata
+        requestQueue.add({ sourceUri: seriesMetaDataUrl, outFilePath: seriesMetaDataPath, options }).then(() => {
+            const body = fs.readFileSync(seriesMetaDataPath)
+            const seriesMetaData = JSON.parse(body)
+            //console.log(seriesMetaData)
 
-            if (options.includeFullInstance) {
+            // iterate over each instance in this series
+            const sopInstanceUids = studyMetaData.map((value) => value["00080018"].Value[0])
+            for (const sopInstanceUid of sopInstanceUids) {
+                const sopInstanceRootUrl = seriesRootUrl + '/instances/' + sopInstanceUid
+                const sopInstanceRootPath = path.join(seriesRootPath, 'instances', sopInstanceUid)
+                fs.mkdirSync(sopInstanceRootPath, { recursive: true })
+
                 // Get SopInstance (DICOM P10 format - multi-part mime wrapped)
-                promises.push(queue.add(() => getAndWrite(seriesRootUrl + '/instances/', path.join(instanceRootPath, '_'), sopInstanceUid, true, options))
-                    .catch((err) => {
-                        handleError('sop instance', err, options)
-                    }))
-            }
-            // Get Sop Instance metadata (JSON)
-            const sopInstanceRootUrl = seriesRootUrl + '/instances/' + sopInstanceUid
-            promises.push(queue.add(() => dumpInstance(sopInstanceRootUrl, instanceRootPath, queue, options)))
-            console.log('dumpInstance pushed')
-        } // look over sop instances
-    } // for() over series
+                /*if (options.includeFullInstance) {
+                    const sopInstanceInstanceRootPath = path.join(sopInstanceRootPath, '_')
+                    fs.mkdirSync(sopInstanceInstanceRootPath, { recursive: true })
+                    const sopInstanceInstancePath = path.join(sopInstanceInstanceRootPath, sopInstanceUid)
+                    requestQueue.add({ sourceUri: sopInstanceRootUrl, outFilePath: sopInstanceInstancePath, options })
+                        .then((dump) => {
+                            if (dump.response.statusCode !== 200) {
+                                fsasync.rm(sopInstanceInstanceRootPath, { recursive: true, force: true })
+                                requestQueue.failed++
+                                requestQueue.success--
+                            }
+                        }).catch((err) => {
+                            if (err.code !== 'ENOENT') {
+                                console.log('zzz', err)
+                            }
+                        })
+                }*/
 
-    // wait for all promises to resolve or one of them to reject
-    console.log('promises2.length=', promises.length)
-    await Promise.all(promises)
+                // Get sop instance metadata
+                const sopInstanceMetaDataUrl = sopInstanceRootUrl + '/metadata'
+                const sopInstanceMetaDataPath = sopInstanceRootPath + '/metadata'
+                requestQueue.add({ sourceUri: sopInstanceMetaDataUrl, outFilePath: sopInstanceMetaDataPath, options }).then((dump) => {
+                    if (dump.response.statusCode === 200) {
+                        const body = fs.readFileSync(sopInstanceMetaDataPath)
+                        const sopInstanceMetaData = JSON.parse(body)
+                        //console.log(sopInstanceMetaData)
+
+                        const hasPixelData = sopInstanceMetaData[0]['7FE00010']
+                        if (hasPixelData) {
+                            const frameRootUrl = sopInstanceRootUrl + '/frames'
+                            const frameRootPath = path.join(sopInstanceRootPath, 'frames')
+                            fs.mkdirSync(frameRootPath, { recursive: true })
+                            const frames = sopInstanceMetaData[0]['00280008'] ?? 1
+                            for (let frameIndex = 1; frameIndex <= frames; frameIndex++) {
+                                const frameUrl = frameRootUrl + '/' + frameIndex
+                                const framePath = frameRootPath + '/' + frameIndex
+                                requestQueue.add({ sourceUri: frameUrl, outFilePath: framePath, options })
+                            }
+                        }
+
+                    } else {
+                        fsasync.rm(sopInstanceRootPath, { recursive: true, force: true })
+                        requestQueue.failed++
+                        requestQueue.success--
+                    }
+                }).catch((err) => {
+                    console.log('yyy', err)
+                })
+            }
+        })
+    }
 }
 
 export default dumpStudy

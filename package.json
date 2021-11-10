@@ -24,7 +24,6 @@
   "homepage": "https://github.com/chafey/dicomweb-dump#readme",
   "dependencies": {
     "got": "^11.8.2",
-    "promise-queue": "^2.2.5",
     "stream-buffers": "^3.0.2",
     "yargs": "^17.2.1"
   },

@@ -1,6 +1,6 @@
 import RequestQueue from '../src/requestQueue.mjs'
 import getAndWrite from '../src/getAndWrite2.mjs'
-import dumpStudy2 from '../src/dumpStudy2.mjs'
+import dumpStudy2 from './dumpStudy.mjs'
 
 let options
 let requestQueue
@@ -11,9 +11,8 @@ const executor = async (request) => {
         try {
             return await getAndWrite(request.sourceUri, request.outFilePath, request.options)
         } catch (err) {
-            //if (err.code === 'ENOTFOUND') {
-            //}
-            if (retryCount++ < options.retry) {
+            // retry specific errors that are transient
+            if (err.code === 'ENOTFOUND' && retryCount++ < options.retry) {
                 requestQueue.retries++
             } else {
                 throw err
