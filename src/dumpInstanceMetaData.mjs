@@ -9,9 +9,7 @@ const dumpInstanceMetaData = (requestQueue, sopInstanceRootUrl, sopInstanceRootP
         if (dump.response.statusCode === 200) {
             const body = fs.readFileSync(sopInstanceMetaDataPath)
             const sopInstanceMetaData = JSON.parse(body)
-            //console.log(sopInstanceMetaData)
-
-            dumpInstanceFrames(requestQueue, sopInstanceRootUrl, sopInstanceRootPath, sopInstanceMetaData, options)
+            dumpInstanceFrames(requestQueue, sopInstanceRootUrl, sopInstanceRootPath, sopInstanceMetaData[0], options)
         } else {
             fsasync.rm(sopInstanceRootPath, { recursive: true, force: true })
             requestQueue.failed++
