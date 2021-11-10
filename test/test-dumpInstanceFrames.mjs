@@ -2,7 +2,7 @@ import dumpInstanceFrames from '../src/dumpInstanceFrames.mjs'
 import assert from 'assert'
 import fs from 'fs'
 import RequestQueue from '../src/requestQueue.mjs'
-import getAndWrite from '../src/getAndWrite2.mjs'
+import getAndWrite from '../src/getAndWrite.mjs'
 import nock from 'nock'
 
 describe('dumpInstanceFrames', async () => {

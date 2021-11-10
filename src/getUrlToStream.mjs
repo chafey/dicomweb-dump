@@ -40,6 +40,11 @@ const getUrlToStream = async (sourceUri, outStream, options) => {
         dump.response.httpVersion = response.httpVersion
     })
 
+    let bytesDownloaded = 0
+    downloadStream.on('data', function (chunk) {
+        bytesDownloaded += chunk.length;
+    })
+
     // pipe data from the download stream to the output stream
     await pipeline(downloadStream, outStream)
 
@@ -47,7 +52,7 @@ const getUrlToStream = async (sourceUri, outStream, options) => {
     dump.response.timeWaitingInMS = downloadStream.timings.phases.wait
     dump.response.timeToFirstByteInMS = downloadStream.timings.phases.firstByte
     dump.response.timeToLastByteInMS = downloadStream.timings.phases.total
-
+    dump.response.bytesDownloaded = bytesDownloaded
     //console.log('returning', dump)
     return dump
 }

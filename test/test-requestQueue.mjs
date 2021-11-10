@@ -56,6 +56,7 @@ describe('RequestQueue', async () => {
         assert.strictEqual(statsBefore.success, 0)
         assert.strictEqual(statsBefore.failed, 0)
         assert.strictEqual(statsBefore.retries, 0)
+
         assert.strictEqual(statsAfter.queued, 0)
         assert.strictEqual(statsAfter.pending, 0)
         assert.strictEqual(statsAfter.requests, 2)

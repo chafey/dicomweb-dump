@@ -8,6 +8,7 @@ function RequestQueue(executor, maxPending = 1) {
     this.success = 0
     this.failed = 0
     this.retries = 0
+    this.bytesDownloaded = 0
 }
 
 RequestQueue.prototype.add = function (request) {
@@ -20,8 +21,11 @@ RequestQueue.prototype.add = function (request) {
         })
     })
     self.promises.add(promise)
-    promise.then(() => {
+    promise.then((dump) => {
         self.success++
+        if (dump && dump.response && dump.response.bytesDownloaded) {
+            self.bytesDownloaded += dump.response.bytesDownloaded
+        }
     }).catch(() => {
         self.failed++
     }).finally(() => {
@@ -97,7 +101,8 @@ RequestQueue.prototype.stats = function () {
         requests: self.requests,
         success: self.success,
         failed: self.failed,
-        retries: self.retries
+        retries: self.retries,
+        bytesDownloaded: self.bytesDownloaded
     }
 }
 

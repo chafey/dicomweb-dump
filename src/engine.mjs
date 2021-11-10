@@ -1,5 +1,5 @@
 import RequestQueue from '../src/requestQueue.mjs'
-import getAndWrite from '../src/getAndWrite2.mjs'
+import getAndWrite from './getAndWrite.mjs'
 import dumpStudy2 from './dumpStudy.mjs'
 
 let options
