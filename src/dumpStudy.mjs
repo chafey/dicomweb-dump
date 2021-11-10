@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
-import { promises as fsasync } from 'fs'
+import dumpInstanceMetaData from './dumpInstanceMetaData.mjs'
+import dumpInstanceP10 from './dumpInstanceP10.mjs'
 
 const dumpStudy = async (requestQueue, studyUid, options) => {
     //console.log(requestQueue, studyUid, options)
@@ -41,55 +42,10 @@ const dumpStudy = async (requestQueue, studyUid, options) => {
                 const sopInstanceRootPath = path.join(seriesRootPath, 'instances', sopInstanceUid)
                 fs.mkdirSync(sopInstanceRootPath, { recursive: true })
 
-                // Get SopInstance (DICOM P10 format - multi-part mime wrapped)
-                /*if (options.includeFullInstance) {
-                    const sopInstanceInstanceRootPath = path.join(sopInstanceRootPath, '_')
-                    fs.mkdirSync(sopInstanceInstanceRootPath, { recursive: true })
-                    const sopInstanceInstancePath = path.join(sopInstanceInstanceRootPath, sopInstanceUid)
-                    requestQueue.add({ sourceUri: sopInstanceRootUrl, outFilePath: sopInstanceInstancePath, options })
-                        .then((dump) => {
-                            if (dump.response.statusCode !== 200) {
-                                fsasync.rm(sopInstanceInstanceRootPath, { recursive: true, force: true })
-                                requestQueue.failed++
-                                requestQueue.success--
-                            }
-                        }).catch((err) => {
-                            if (err.code !== 'ENOENT') {
-                                console.log('zzz', err)
-                            }
-                        })
-                }*/
+                dumpInstanceP10()
 
                 // Get sop instance metadata
-                const sopInstanceMetaDataUrl = sopInstanceRootUrl + '/metadata'
-                const sopInstanceMetaDataPath = sopInstanceRootPath + '/metadata'
-                requestQueue.add({ sourceUri: sopInstanceMetaDataUrl, outFilePath: sopInstanceMetaDataPath, options }).then((dump) => {
-                    if (dump.response.statusCode === 200) {
-                        const body = fs.readFileSync(sopInstanceMetaDataPath)
-                        const sopInstanceMetaData = JSON.parse(body)
-                        //console.log(sopInstanceMetaData)
-
-                        const hasPixelData = sopInstanceMetaData[0]['7FE00010']
-                        if (hasPixelData) {
-                            const frameRootUrl = sopInstanceRootUrl + '/frames'
-                            const frameRootPath = path.join(sopInstanceRootPath, 'frames')
-                            fs.mkdirSync(frameRootPath, { recursive: true })
-                            const frames = sopInstanceMetaData[0]['00280008'] ?? 1
-                            for (let frameIndex = 1; frameIndex <= frames; frameIndex++) {
-                                const frameUrl = frameRootUrl + '/' + frameIndex
-                                const framePath = frameRootPath + '/' + frameIndex
-                                requestQueue.add({ sourceUri: frameUrl, outFilePath: framePath, options })
-                            }
-                        }
-
-                    } else {
-                        fsasync.rm(sopInstanceRootPath, { recursive: true, force: true })
-                        requestQueue.failed++
-                        requestQueue.success--
-                    }
-                }).catch((err) => {
-                    console.log('yyy', err)
-                })
+                dumpInstanceMetaData(requestQueue, sopInstanceRootUrl, sopInstanceRootPath, options)
             }
         })
     }
