@@ -55,10 +55,15 @@ describe('concurrentGetAndWrite', async () => {
 
         // Act
         const promise = concurrentGetAndWrite(uri, outFilePath, requestQueue, options)
+        // Assert
+        promise.then(() => {
+            assert.fail('should not succeed')
+        }).catch((err) => {
+            //console.log('zzz', err)
+            assert.strictEqual(err.code, 'ERR_INVALID_URL')
+            assert.ok(!fs.existsSync(outFilePath))
+        })
         await requestQueue.empty()
 
-        // Assert
-        assert.rejects(() => promise)
-        assert.ok(!fs.existsSync(outFilePath))
     })
 })

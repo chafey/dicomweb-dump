@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-
+import { promises as fsasync } from 'fs'
 
 const dumpStudy = async (requestQueue, studyUid, options) => {
     //console.log(requestQueue, studyUid, options)
@@ -62,6 +62,10 @@ const dumpStudy = async (requestQueue, studyUid, options) => {
                                     requestQueue.add({ sourceUri: frameUrl, outFilePath: framePath, options })
                                 }
                             }
+                        } else {
+                            fsasync.rm(sopInstanceRootPath, { recursive: true, force: true })
+                            requestQueue.failed++
+                            requestQueue.success--
                         }
                     })
                 }

@@ -4,8 +4,10 @@ function RequestQueue(executor, maxPending = 1) {
     this.pending = new Set()
     this.maxPending = maxPending
     this.promises = new Set()
-    this.completed = 0
+    this.requests = 0
+    this.success = 0
     this.failed = 0
+    this.retries = 0
 }
 
 RequestQueue.prototype.add = function (request) {
@@ -19,10 +21,11 @@ RequestQueue.prototype.add = function (request) {
     })
     self.promises.add(promise)
     promise.then(() => {
-        self.completed++
+        self.success++
     }).catch(() => {
         self.failed++
     }).finally(() => {
+        self.requests++
         self.promises.delete(promise)
     })
     return promise
@@ -91,8 +94,10 @@ RequestQueue.prototype.stats = function () {
     return {
         queued: self.queue.length,
         pending: self.pending.size,
-        completed: self.completed,
-        failed: self.failed
+        requests: self.requests,
+        success: self.success,
+        failed: self.failed,
+        retries: self.retries
     }
 }
 

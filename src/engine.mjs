@@ -2,12 +2,27 @@ import RequestQueue from '../src/requestQueue.mjs'
 import getAndWrite from '../src/getAndWrite2.mjs'
 import dumpStudy2 from '../src/dumpStudy2.mjs'
 
-const executor = (request) => {
-    return getAndWrite(request.sourceUri, request.outFilePath, request.options)
+let options
+let requestQueue
+
+const executor = async (request) => {
+    let retryCount = 0
+    do {
+        try {
+            return await getAndWrite(request.sourceUri, request.outFilePath, request.options)
+        } catch (err) {
+            //if (err.code === 'ENOTFOUND') {
+            //}
+            if (retryCount++ < options.retry) {
+                requestQueue.retries++
+            } else {
+                throw err
+            }
+        }
+    } while (true)
 }
 
-let requestQueue = new RequestQueue(executor)
-let options
+requestQueue = new RequestQueue(executor)
 
 const configure = async (opts) => {
     await requestQueue.empty()
