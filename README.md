@@ -3,7 +3,7 @@ CLI tool to dump DICOMweb WADO-RS responses to disk
 
 ## Status
 
-In development/alpha (as of Nov 2, 2021).  Beta release targeted for Nov 8, 2021
+Beta (as of Nov 16, 2021), target is to do first release by Nov 24, 2021
 
 ## Features
 * Dump study metadata
@@ -15,6 +15,7 @@ In development/alpha (as of Nov 2, 2021).  Beta release targeted for Nov 8, 2021
 * Concurrent requests for faster downloads (and stress testing servers)
 * Supports requests over http2 (on by default - can be disabled)
 * Stream based to minimize memory overhead and maximize concurrency
+* Support for using http2 (off by default)
 
 ## Prerequisites
 
@@ -52,8 +53,10 @@ Options:
                                off)                                    [boolean]
   -r, --retry                  request failure retry count (default 3)  [number]
   -z, --authorization          HTTP Authorization header value          [string]
+      --h2, --http2            Use HTTP2 (default is HTTP1)            [boolean]
   -h, --help                   Show help                               [boolean]
-  ```
+
+```
 
 ## Output Structure
 
