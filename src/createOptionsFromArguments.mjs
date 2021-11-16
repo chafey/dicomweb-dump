@@ -9,6 +9,7 @@ const createOptionsFromArguments = (argv) => {
         abort: argv.a ?? false,
         retry: argv.r ?? 3,
         authorization: argv.z,
+        http2: argv.h2,
     }
 }
 

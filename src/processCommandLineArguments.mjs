@@ -56,6 +56,11 @@ const processCommandLineArguments = () => {
             description: 'HTTP Authorization header value',
             type: 'string'
         })
+        .option('h2', {
+            alias: 'http2',
+            description: 'Use HTTP2 (default is HTTP1)',
+            type: 'boolean'
+        })
         .demandOption(['w', 's', 'o'])
         .help()
         .alias('help', 'h')
